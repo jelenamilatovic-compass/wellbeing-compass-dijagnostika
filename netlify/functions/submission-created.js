@@ -250,7 +250,6 @@ async function sendPostmarkEmail({
       Subject: subject,
       HtmlBody: htmlBody,
       TextBody: textBody,
-      MessageStream: "outbound",
       Attachments: attachments,
     }),
   });
