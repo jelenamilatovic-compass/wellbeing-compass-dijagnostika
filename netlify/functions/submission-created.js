@@ -27,6 +27,10 @@ function safe(value, fallback = "-") {
   return text || fallback;
 }
 
+function cleanPdfText(value) {
+  return safe(value, "").replace(/[čćžšđČĆŽŠĐ]/g, "");
+}
+
 function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -57,7 +61,7 @@ function splitDoublePipes(text) {
 
 async function buildPdfBase64(data, lang) {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595.28, 841.89]); // A4
+  const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -144,7 +148,7 @@ async function buildPdfBase64(data, lang) {
   }
 
   const title1 = lang === "en" ? "Marketing & Sales" : "Marketing & Prodaja";
-  const title2 = lang === "en" ? "Diagnostic Report" : "Dijagnostički izvještaj";
+  const title2 = lang === "en" ? "Diagnostic Report" : "Dijagnosticki izvjestaj";
   const dateText = new Date().toLocaleDateString(lang === "en" ? "en-GB" : "sr-Latn-ME");
 
   drawText("WELLBEING COMPASS · GROWTH METHOD™", left, y, 8, colors.muted, true);
@@ -159,7 +163,7 @@ async function buildPdfBase64(data, lang) {
   drawText(lang === "en" ? "OVERALL SCORE" : "UKUPNI SCORE", left + 18, y - 8, 9, colors.muted, true);
   drawText(safe(data.score), left + 18, y - 46, 30, colors.blue, true);
 
-  const summary = safe(data.summary_text);
+  const summary = cleanPdfText(data.summary_text);
   const summaryLines = wrapText(summary, 44);
   let sy = y - 10;
   for (const line of summaryLines.slice(0, 5)) {
@@ -169,28 +173,28 @@ async function buildPdfBase64(data, lang) {
   y -= 108;
 
   sectionTitle(lang === "en" ? "Key details" : "Osnovni podaci");
-  paragraph(`${lang === "en" ? "Name" : "Ime"}: ${safe(data.ime)}`);
-  paragraph(`Email: ${safe(data.email)}`);
-  paragraph(`${lang === "en" ? "Company" : "Kompanija"}: ${safe(data.kompanija)}`);
-  paragraph(`${lang === "en" ? "Industry" : "Branša"}: ${safe(data.bransa)}`);
-  paragraph(`${lang === "en" ? "Challenges" : "Izazovi"}: ${safe(data.izazovi)}`);
-  paragraph(`${lang === "en" ? "Message" : "Poruka"}: ${safe(data.poruka)}`);
+  paragraph(`${lang === "en" ? "Name" : "Ime"}: ${cleanPdfText(data.ime)}`);
+  paragraph(`Email: ${cleanPdfText(data.email)}`);
+  paragraph(`${lang === "en" ? "Company" : "Kompanija"}: ${cleanPdfText(data.kompanija)}`);
+  paragraph(`${lang === "en" ? "Industry" : "Bransa"}: ${cleanPdfText(data.bransa)}`);
+  paragraph(`${lang === "en" ? "Challenges" : "Izazovi"}: ${cleanPdfText(data.izazovi)}`);
+  paragraph(`${lang === "en" ? "Message" : "Poruka"}: ${cleanPdfText(data.poruka)}`);
   y -= 8;
 
   sectionTitle(lang === "en" ? "Phase breakdown" : "Pregled po fazama");
   for (const item of splitPipes(data.phase_scores)) {
-    paragraph(`• ${item}`, { indent: 8 });
+    paragraph(`• ${cleanPdfText(item)}`, { indent: 8 });
   }
   y -= 8;
 
-  sectionTitle(lang === "en" ? "Critical gaps" : "Kritični gapovi", colors.red);
+  sectionTitle(lang === "en" ? "Critical gaps" : "Kriticni gapovi", colors.red);
   const gaps = splitDoublePipes(data.critical_gaps);
   if (gaps.length) {
     for (const item of gaps.slice(0, 5)) {
-      paragraph(`• ${item}`, { indent: 8, maxChars: 72 });
+      paragraph(`• ${cleanPdfText(item)}`, { indent: 8, maxChars: 72 });
     }
   } else {
-    paragraph(lang === "en" ? "No critical gaps detected." : "Nema detektovanih kritičnih gapova.", {
+    paragraph(lang === "en" ? "No critical gaps detected." : "Nema detektovanih kriticnih gapova.", {
       indent: 8,
       color: colors.muted,
     });
@@ -201,10 +205,10 @@ async function buildPdfBase64(data, lang) {
   const strengths = splitDoublePipes(data.strengths);
   if (strengths.length) {
     for (const item of strengths.slice(0, 5)) {
-      paragraph(`• ${item}`, { indent: 8, maxChars: 72 });
+      paragraph(`• ${cleanPdfText(item)}`, { indent: 8, maxChars: 72 });
     }
   } else {
-    paragraph(lang === "en" ? "No standout strengths recorded yet." : "Još nema izdvojenih sistemskih snaga.", {
+    paragraph(lang === "en" ? "No standout strengths recorded yet." : "Jos nema izdvojenih sistemskih snaga.", {
       indent: 8,
       color: colors.muted,
     });
@@ -217,7 +221,7 @@ async function buildPdfBase64(data, lang) {
     color: colors.border,
   });
 
-  drawText("Wellbeing Compass · Jelena Milatović · Podgorica", left, 16, 9, colors.muted);
+  drawText("Wellbeing Compass · Jelena Milatovic · Podgorica", left, 16, 9, colors.muted);
   drawText("wellbeingcompass.me", right - 100, 16, 9, colors.muted);
 
   const pdfBytes = await pdfDoc.save();
@@ -236,7 +240,7 @@ async function sendPostmarkEmail({
   const response = await fetch("https://api.postmarkapp.com/email", {
     method: "POST",
     headers: {
-      "Accept": "application/json",
+      Accept: "application/json",
       "Content-Type": "application/json",
       "X-Postmark-Server-Token": token,
     },
@@ -276,15 +280,9 @@ exports.handler = async function(event) {
     const OWNER_EMAIL = process.env.DIAGNOSTIC_OWNER_EMAIL;
     const FROM_EMAIL = process.env.DIAGNOSTIC_FROM_EMAIL;
 
-    if (!POSTMARK_SERVER_TOKEN) {
-      throw new Error("Missing POSTMARK_SERVER_TOKEN");
-    }
-    if (!OWNER_EMAIL) {
-      throw new Error("Missing DIAGNOSTIC_OWNER_EMAIL");
-    }
-    if (!FROM_EMAIL) {
-      throw new Error("Missing DIAGNOSTIC_FROM_EMAIL");
-    }
+    if (!POSTMARK_SERVER_TOKEN) throw new Error("Missing POSTMARK_SERVER_TOKEN");
+    if (!OWNER_EMAIL) throw new Error("Missing DIAGNOSTIC_OWNER_EMAIL");
+    if (!FROM_EMAIL) throw new Error("Missing DIAGNOSTIC_FROM_EMAIL");
 
     const clientEmail = safe(data.email, "");
     if (!clientEmail || clientEmail === "-") {
@@ -303,7 +301,7 @@ exports.handler = async function(event) {
     const clientSubject =
       lang === "en"
         ? "Your Wellbeing Compass diagnostic report"
-        : "Vaš Wellbeing Compass dijagnostički izvještaj";
+        : "Vas Wellbeing Compass dijagnosticki izvjestaj";
 
     const ownerHtml = `
       <div style="font-family:Georgia,serif;background:#0B1929;color:#C8DCF0;padding:24px">
@@ -311,7 +309,7 @@ exports.handler = async function(event) {
         <p><strong>Ime:</strong> ${escapeHtml(safe(data.ime))}</p>
         <p><strong>Email:</strong> ${escapeHtml(safe(data.email))}</p>
         <p><strong>Kompanija:</strong> ${escapeHtml(safe(data.kompanija))}</p>
-        <p><strong>Branša:</strong> ${escapeHtml(safe(data.bransa))}</p>
+        <p><strong>Bransa:</strong> ${escapeHtml(safe(data.bransa))}</p>
         <p><strong>Score:</strong> ${escapeHtml(score)}</p>
         <p><strong>Izazovi:</strong> ${escapeHtml(safe(data.izazovi))}</p>
         <p><strong>Poruka:</strong> ${escapeHtml(safe(data.poruka))}</p>
@@ -335,10 +333,10 @@ exports.handler = async function(event) {
     `
         : `
       <div style="font-family:Georgia,serif;background:#0B1929;color:#C8DCF0;padding:24px">
-        <h1 style="color:#E8F2FF;margin-top:0">Hvala što ste završili dijagnostiku.</h1>
-        <p>Vaš score: <strong>${escapeHtml(score)}</strong></p>
-        <p>Vaš izvještaj je u prilogu kao PDF.</p>
-        <p>Pregledaćemo prijavu i javiti vam se sa sljedećim korakom.</p>
+        <h1 style="color:#E8F2FF;margin-top:0">Hvala sto ste zavrsili dijagnostiku.</h1>
+        <p>Vas score: <strong>${escapeHtml(score)}</strong></p>
+        <p>Vas izvjestaj je u prilogu kao PDF.</p>
+        <p>Pregledacemo prijavu i javiti vam se sa sljedecim korakom.</p>
         <p style="margin-top:24px">Wellbeing Compass</p>
       </div>
     `;
@@ -370,7 +368,7 @@ exports.handler = async function(event) {
       textBody:
         lang === "en"
           ? `Thank you for completing the diagnostic. Your score is ${score}. Your PDF report is attached.`
-          : `Hvala što ste završili dijagnostiku. Vaš score je ${score}. PDF izvještaj je u prilogu.`,
+          : `Hvala sto ste zavrsili dijagnostiku. Vas score je ${score}. PDF izvjestaj je u prilogu.`,
       attachments: attachment,
     });
 
