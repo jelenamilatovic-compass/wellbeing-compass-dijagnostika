@@ -1,2 +1,2 @@
-# wellbeing-compass-dijagnostika
-Wellbeing Compass marketing diagnostic with Netlify forms, PDF reports and email automatisation
+Upload this project to GitHub, then connect it to Netlify.
+Included: index.html, netlify/functions, emails templates, package.json, netlify.toml

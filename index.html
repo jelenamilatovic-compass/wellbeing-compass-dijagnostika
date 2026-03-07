@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marketing Dijagnostika | Wellbeing Compass</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0B1929;--bg2:#0F2035;--card:#122040;--border:rgba(255,255,255,0.08);
+      --blue:#3A8FD4;--blue2:#1B5F8C;--text:#C8DCF0;--muted:#4A6A84;--dim:#1A3350
+    }
+    html,body{
+      background:var(--bg)!important;color:var(--text);font-family:Georgia,serif;
+      -webkit-font-smoothing:antialiased;min-height:100vh
+    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .fade{animation:fadeIn .4s ease}
+    input,select,textarea{
+      width:100%;padding:13px 16px;background:rgba(255,255,255,0.04);
+      border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;
+      outline:none;margin-bottom:10px;font-family:Georgia,serif;transition:border-color .2s
+    }
+    input:focus,select:focus,textarea:focus{border-color:rgba(58,143,212,0.5)}
+    select{background:var(--bg2)}
+    select option{background:var(--bg2)}
+    .lbl{font-size:9px;letter-spacing:5px;color:var(--muted);font-family:'Courier New',monospace;margin-bottom:6px}
+    .btn{
+      width:100%;padding:16px;border:none;border-radius:10px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:Georgia,serif;letter-spacing:.5px;transition:opacity .2s,transform .1s
+    }
+    .btn:hover{opacity:.9;transform:translateY(-1px)}
+    .btn-main{
+      background:linear-gradient(135deg,#1B5F8C,#3A8FD4);color:#fff;
+      box-shadow:0 4px 20px rgba(58,143,212,0.25)
+    }
+    .btn-ghost{
+      background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--muted);margin-top:10px
+    }
+    .btn-pdf{
+      background:linear-gradient(135deg,#1A4A6A,#256090);color:#A8D0F0;
+      border:1px solid rgba(58,143,212,0.3);margin-top:10px;font-size:14px;
+      box-shadow:0 2px 12px rgba(58,143,212,0.15)
+    }
+    .opt{
+      display:flex;align-items:flex-start;gap:14px;width:100%;padding:15px 16px;border-radius:10px;
+      cursor:pointer;text-align:left;background:rgba(255,255,255,0.02);border:1px solid var(--border);
+      margin-bottom:8px;font-family:Georgia,serif;transition:background .15s,border-color .2s,transform .15s
+    }
+    .opt:hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.14)}
+    .opt.sel{background:rgba(58,143,212,0.09);border-color:rgba(58,143,212,0.3);transform:translateX(3px)}
+    .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:2px solid var(--dim);margin-top:4px;transition:all .2s}
+    .why-box{
+      margin-top:8px;padding:12px 15px;background:rgba(58,143,212,0.06);border-radius:8px;
+      border-left:3px solid var(--blue);font-size:12px;color:#5A8AA8;line-height:1.85;font-style:italic;display:none
+    }
+    .why-box.open{display:block}
+    .prog{width:100%;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+    .prog-f{height:100%;background:linear-gradient(90deg,#1B5F8C,#3A8FD4);border-radius:2px;transition:width .4s}
+    .ph-tab{flex:1;padding:9px 4px;text-align:center;border-bottom:2px solid transparent;transition:border-color .2s}
+    .ph-tab.on{border-bottom:2px solid var(--blue)}
+    .rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .ferr{border-color:rgba(231,76,60,0.55)!important}
+    .err-msg{font-size:11px;color:#E07070;margin-top:-6px;margin-bottom:8px}
+    #lb{
+      position:fixed;top:16px;right:16px;z-index:999;background:rgba(58,143,212,0.1);
+      border:1px solid rgba(58,143,212,0.28);color:#7ABDE0;font-family:'Courier New',monospace;
+      font-size:11px;letter-spacing:2px;padding:7px 14px;border-radius:20px;cursor:pointer;
+      transition:all .2s;backdrop-filter:blur(8px)
+    }
+    #lb:hover{background:rgba(58,143,212,0.2)}
+    .ph-card{transition:border-color .2s,background .2s}
+    .ph-card:hover{border-color:rgba(58,143,212,0.3)!important;background:rgba(58,143,212,0.04)!important}
+    @media print{
+      #lb,#b_reset,.btn-ghost,.btn-pdf,#cf-wrap{display:none!important}
+      body{background:#0B1929!important;color:#C8DCF0!important}
+      .fade{animation:none}
+    }
+  </style>
+</head>
+<body>
+<button id="lb" onclick="switchLang()">EN</button>
+<div id="root"></div>
+
+<!-- Netlify Forms marker: do not remove -->
+<form name="dijagnostika-kontakt" netlify netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="dijagnostika-kontakt" />
+  <input name="bot-field" />
+  <input name="ime" />
+  <input name="email" />
+  <input name="kompanija" />
+  <input name="bransa" />
+  <input name="score" />
+  <input name="izazovi" />
+  <input name="poruka" />
+  <input name="jezik" />
+  <input name="phase_scores" />
+  <input name="critical_gaps" />
+  <input name="strengths" />
+  <input name="summary_text" />
+</form>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const DATA={
+mn:{
+  SECTORS:["Hospitality / Turizam","Wellness / Beauty / Fitness","Finansije / Osiguranje","B2B Konsalting / Agencija","Lični Brend / Coach / Edukator","Maloprodaja / E-commerce"],
+  PHASES:[
+    {n:"01",t:"INPUT",s:"Marketing koji privlači, ne ganja",qs:[23,24,25,0,1,2,3,4,5,6]},
+    {n:"02",t:"AKTIVACIJA",s:"Od kontakta do prvog DA",qs:[7,8,9,10,11,12,26]},
+    {n:"03",t:"AKCIJA",s:"Prodaja koja ne prodaje — ubjeđuje",qs:[13,14,15,16,17]},
+    {n:"04",t:"OUTPUT",s:"Gdje marketing postaje neplaćen",qs:[18,19,20,21,22]}
+  ],
+  PQ:[
+  [{v:1,l:"Website ili profil postoji, ali posjetilac ne razumije jasnu poziciju za 8 sekundi",d:"Nevidljivi na prvom dodiru — nedosljedna prezentacija košta više od odsutnosti",c:"#E05555"},{v:2,l:"Website je dobro postavljen, ali svi touchpointi (Instagram, LinkedIn, GMB, landing stranice) nisu sinhronizovani s istom ključnom porukom",d:"Nedosljedna pozicija između touchpointa gubi povjerenje koje ste plaćenim prometom izgradili",c:"#C9A028"},{v:3,l:"Svi touchpointi komuniciraju istu jasnu poziciju za 8 sekundi — website, profili, GMB, landing stranice i ad destinacije",d:"Koherentna prezentacija kroz sve kanale = viši trust, niži CAC, manji bounce",c:"#27AE60"}],
+  [{v:1,l:"Komunikacija je funkcionalna: opis usluga, cjenovnik, kontakt — nema priče koja gradi emociju ni diferencijalnu poziciju",d:"Zamjenjivi na tržištu — jedina preostala diferencijacija postaje cijena",c:"#E05555"},{v:2,l:"Postoji 'O nama' stranica i povremeni storytelling na Instagramu, ali priča nije dosljedna između kanala, formata i prodajnih materijala",d:"Priča postoji ali ne gradi brand equity jer nije dosljedno primijenjena",c:"#C9A028"},{v:3,l:"Hero narativ, founder priča ili brand manifesto integrirani su u website, Reele, email sekvence, sales deck i oglase — ista priča, različiti formati",d:"Autentična priča = jedini neimitabilni marketing asset koji se jača svaki put kad se ispriča",c:"#27AE60"}],
+  [{v:1,l:"Objavljujemo povremeno — uglavnom promotivni sadržaj bez edukativne logike, plana distribucije ni repurposing strategije",d:"Ad hoc sadržaj ne gradi autoritet, SEO kapital ni email listu",c:"#E05555"},{v:2,l:"Imamo plan i koristimo 1–2 formata, ali bez edukativnih serija, repurposinga ni prilagođavanja formatima koji rade za našu branšu",d:"Potencijal sadržaja nije iskorišten — isti input, višestruko manji output",c:"#C9A028"},{v:3,l:"Koristimo miks formata prilagođen branši: Reels za doseg, edukativni carousel za autoritet, webinar za zagrijavanje, freebie za lead gen, newsletter za owned doseg — repurposing jedan asset u 5+ formata",d:"Svaki format radi drugi posao u funnel-u — maksimalni ROI sadržaja bez proporcionalne investicije",c:"#27AE60"}],
+  [{v:1,l:"Gotovo sav promet dolazi kroz plaćene oglase ili direktnu pretragu naziva — nema SEO strategije ni organskog sadržaja",d:"Nula organskog kapitala — svaki euro oglašavanja troši, ne gradi dugoročnu vrijednost",c:"#E05555"},{v:2,l:"Postoje blog postovi ili YouTube videi, ali bez sistematske SEO strategije ni GEO optimizacije za AI pretraživače",d:"Organski sadržaj postoji ali nije strateški usmjeren — ne radi dok vi spavate",c:"#C9A028"},{v:3,l:"SEO-optimizirani blog ili YouTube, optimizovani GMB, lokalni SEO i GEO sadržaj za AI pretrage — stabilan organski promet nezavisno od ad budžeta",d:"Organski kanal koji se gradi jednom, a donosi promet godinama — najniži dugoročni CAC",c:"#27AE60"}],
+  [{v:1,l:"Kampanje pokrećemo intuitivno — pratimo lajkove i reach, ali ne znamo CAC po kanalu ni LTV po tipu klijenta",d:"Nemoguće optimizovati ono što se ne mjeri — budžet se troši, ne investira",c:"#E05555"},{v:2,l:"Pratimo trošak otprilike, ali ne segmentiramo rezultate po formatu ni po profilu klijenta koji konvertira",d:"Znamo da oglasi 'rade', ali ne znamo koji format i segment donosi profitabilne klijente",c:"#C9A028"},{v:3,l:"Znamo CAC po svakom formatu i kanalu i LTV po segmentu — budžet alociramo tamo gdje je LTV:CAC ≥ 3:1",d:"Data-driven alokacija budžeta = eksponencijalni rast uz isti ili manji ukupni trošak",c:"#27AE60"}],
+  [{v:1,l:"Oslanjamo se isključivo na plaćene oglase i vlastite kanale — nema partnerskih aktivnosti ni earned media strategije",d:"Propuštena multiplikacija — tuđa publika i credibilitet ostaju neiskorišćeni kao besplatni kanal",c:"#E05555"},{v:2,l:"Poneke kolaboracije ili gostovanje na podkastima, ali bez redovnog plana, definisanih KPI-eva ni praćenja",d:"Prilike se hvataju ad hoc — ne grade sistemski kanal akvizicije",c:"#C9A028"},{v:3,l:"Aktivna partnerska mreža: cross-promotions, gostovanja na podkastima, lokalni PR, mikro-influencer saradnje i affiliate program — sve praćeno kao zasebni akvizicijski kanal",d:"Earned i partner media kanal koji gradi trust i snižava CAC — bez proporcionalnog budžeta",c:"#27AE60"}],
+  [{v:1,l:"Fokus je na jednosmernoj promociji — nema strategije izgradnje zajednice ni owned community platforme nezavisne o algoritmima",d:"Bez community-a, brand equity ne raste organskim putem",c:"#E05555"},{v:2,l:"Postoji interakcija s pratiteljima na društvenim mrežama, ali nema owned platforme koja radi nezavisno od algoritama",d:"Dobra aktivnost na tuđim platformama — ranjivo pri svakoj promjeni algoritma",c:"#C9A028"},{v:3,l:"Izgrađena zajednica na owned platformi (email lista, privatna grupa, Skool, offline eventi, WhatsApp broadcast) koja se redovito aktivira edukativnim sadržajem i ekskluzivnim benefitima",d:"Community = najjeftiniji retention i akvizicijski kanal istovremeno",c:"#27AE60"}],
+  [{v:1,l:"Ručno odgovaramo na sve upite — nema automatizirane dobrodošlice ni prvog koraka koji isporučuje vrijednost odmah",d:"HBR: svaki sat kašnjenja smanjuje konverziju za 10x. Tim troši kapacitet na repetitivne odgovore umjesto na prodaju",c:"#E05555"},{v:2,l:"Imamo auto-reply ili welcome email, ali bez personalizacije, nurturing logike ni jasnog sljedećeg koraka",d:"Postoji, ali ne koristi 'hot' momenat prvog kontakta za izgradnju povjerenja",c:"#C9A028"},{v:3,l:"Welcome email sekvenca, DM automation, automatizirani FAQ chatbot i lead magnet isporuka — sve unutar prvih 15 minuta, bez ručnog rada tima",d:"Sistem koji pretvara lead u zainteresovanog kontakt dok vi spavate ili radite na isporuci",c:"#27AE60"}],
+  [{v:1,l:"Nemamo jasan lead magnet — email lista je mala ili prikupljamo kontakte samo kroz direktne upite i kupovine",d:"Bez lead magneta, svaki plaćeni promet koji ne konvertira odmah je trajno izgubljen",c:"#E05555"},{v:2,l:"Imamo freebie koji privlači kontakte, ali ne konvertira dovoljno ili privlači previše široku publiku koja ne kupuje",d:"Lead magnet postoji ali nije dovoljno specifičan za profil klijenta koji kupuje",c:"#C9A028"},{v:3,l:"Testiran i optimizovan lead magnet za našu branšu: edukativni vodič, challenge, quiz, besplatni webinar, mini-kurs ili besplatna dijagnostika — konvertira publiku s jasnom kupovnom namjerom",d:"Lead magnet kao filtar kvaliteta: lista raste s pravim profilima",c:"#27AE60"}],
+  [{v:1,l:"Šaljemo newsletter povremeno svima — nema automatizirane sekvence koja vodi od prvog kontakta prema odluci o kupovini",d:"Mass broadcast bez logike = niska relevantnost, visok unsubscribe, niska konverzija",c:"#E05555"},{v:2,l:"Imamo 2–3 welcome emaila, ali sekvenca nema jasnu progresiju ni behaviour-triggered grananje",d:"Nurturing postoji ali nije optimizovan za konverziju niti prati signale zainteresovanosti",c:"#C9A028"},{v:3,l:"5–7 emailova s jasnom progresijom: edukacija → socijalni dokaz → prigovor handling → CTA — plus behaviour-triggered okidači koji granaju tok prema namjeri",d:"Automatizirani prodajni razgovor koji radi 24/7 i prilagođava se ponašanju, ne kalendaru",c:"#27AE60"}],
+  [{v:1,l:"Ista poruka ide svima na listi — nema segmentacije ni po fazi odluke ni po tipu klijenta ni po prethodnom ponašanju",d:"Broadcast marketing = niska relevantnost, visok trošak pažnje, nizak conversion",c:"#E05555"},{v:2,l:"Ručno segmentiramo po tipu klijenta, ali ne pratimo fazu odluke ni behaviour signale u realnom vremenu",d:"Djelimično — segmentacija po profilu bez sekvenciranja po namjeri i trenutku",c:"#C9A028"},{v:3,l:"Automatska segmentacija po fazi kupovnog puta, tipu klijenta i behaviour signalima — svaki segment dobija drugačiji sadržaj, CTA i tempo komunikacije",d:"Personalizovana komunikacija u pravom trenutku = najviši conversion rate uz najmanji trošak",c:"#27AE60"}],
+  [{v:1,l:"Ne pratimo konverziju — ne znamo koliko posjetilaca postaje lead niti koje stranice ili CTA-ovi uzrokuju napuštanje",d:"Nevidljivi gubitak koji se ponavlja svaki dan bez sistema mjerenja",c:"#E05555"},{v:2,l:"Pratimo posjete kroz Google Analytics, ali nemamo heatmapu, conversion events ni A/B testiranje",d:"Data postoji ali se ne koristi za optimizaciju — potencijal ostaje neiskorišćen",c:"#C9A028"},{v:3,l:"Tracking pixel, heatmapa, conversion events i A/B testiranje landing stranica i CTA-ova — znamo tačno gdje gubimo i sistematski to optimizujemo",d:"CRO kao kontinuirani proces: bez povećanja budžeta, viši prihod od istog saobraćaja",c:"#27AE60"}],
+  [{v:1,l:"Nema filtera — svaki upit dobiva punu pažnju tima bez obzira na fit, budžet ili ozbiljnost namjere kupovine",d:"64% prodajnog kapaciteta troši se na leade koji ne kupuju (Forrester) — direktni burnout i gubitak prihoda",c:"#E05555"},{v:2,l:"Intuitivno prepoznajemo loše fitove tokom prvog razgovora, ali nema automatizirane pre-qualification ni lead scoring sistema",d:"Bolje od ničega, ali svaki nepravi razgovor troši prodajni kapacitet koji bi mogao ići na pravi lead",c:"#C9A028"},{v:3,l:"Intake forma, lead scoring ili automated qualifier automatski filtriraju leade po fitu, budžetu i fazi — tim razgovara samo s visoko-kvalifikovanim kontaktima",d:"Zaštita prodajnog kapaciteta = direktno povećanje prihoda i smanjenje burnout-a tima",c:"#27AE60"}],
+  [{v:1,l:"Imamo jednu ili dvije ponude bez jasne logike napredovanja — posjetilac ili kupi odmah ili odlazi bez alternativne opcije",d:"Bez offer laddere, gubite sve koji nisu odmah 'hot buyer' — a to je 97% saobraćaja koji plaćate",c:"#E05555"},{v:2,l:"Imamo više ponuda ali bez jasne entry → core → premium progresije koja vodi klijenta kroz vrijednosni put",d:"Ponude postoje ali ne komuniciraju logičan put naprijed — klijent je zbunjen ili prepušten sam sebi",c:"#C9A028"},{v:3,l:"Jasna trostepena arhitektura: Entry (low-ticket ili besplatna dijagnostika), Core (glavni program), Premium (1:1, VIP retainer) — svaki nivo prirodno vodi ka sljedećem",d:"Offer ladder = svaki klijent na svom stupnju pripravljenosti ima relevantnu opciju i jasnu putanju naprijed",c:"#27AE60"}],
+  [{v:1,l:"Svaki prodajni razgovor počinje od nule — nema standardiziranih materijala, case studiesa ni FAQ-a koji obrađuju prigovore unaprijed",d:"Prodajna energija troši se na ponavljanje iste priče — svaki pitch je kao prvi, neskalabilno",c:"#E05555"},{v:2,l:"Imamo neki materijal, ali nije organiziran kao sistem koji prati faze kupovne odluke i vodi klijenta prema DA",d:"Materijal postoji ali nije sekvenciran prema buyer journey-u — ne radi samostalno",c:"#C9A028"},{v:3,l:"Sales deck, 3+ case studiesa s konkretnim rezultatima, prigovor-handling FAQ, proposal template i follow-up email sekvenca — sve mapirano prema fazi odluke kupca",d:"Sales enablement koji radi 24/7 — decision maker se sam 'ubjeđuje' kroz sadržaj i materijale",c:"#27AE60"}],
+  [{v:1,l:"Pipeline je u glavi ili Excel tablici — nema pregleda koji lead je gdje, ko čeka follow-up ni koliko prihoda je u procesu",d:"Nevidljivi pipeline = propušteni follow-upi = direktan gubitak prihoda svaki tjedan",c:"#E05555"},{v:2,l:"Koristimo osnovni CRM, ali bez automatiziranih podsjetnika, deal stage praćenja ni revenue forecasting-a",d:"Organiziranije od tablice, ali daleko od sistema koji proaktivno štiti prihod",c:"#C9A028"},{v:3,l:"CRM s jasnim pipeline stage-ovima, automatizirani follow-up podsjetnici, deal value tracking i sedmični pipeline review — svaki lead je praćen, ništa ne propada",d:"Vidljivi pipeline = predvidivi prihod i proaktivna prodaja umjesto reaktivne potrage za novim klijentima",c:"#27AE60"}],
+  [{v:1,l:"Neodlučne kupce ne prepoznajemo sistematski — svi leadi prolaze isti tok bez obzira na signale zainteresovanosti",d:"Bez retargeting sistema, 97% saobraćaja koji nije odmah kupilo odlazi zauvijek",c:"#E05555"},{v:2,l:"Prepoznajemo neodlučne u direktnom razgovoru, ali nema automatizirane petlje koja ih vraća",d:"Neodlučni kupac odlazi bez drugog šanse — a to je najjeftiniji mogući lead jer je već svjestan vaše ponude",c:"#C9A028"},{v:3,l:"Meta/Google retargeting pixel, email re-engagement sekvenca, obavijest tima kad lead ponovo posjeti stranicu i follow-up sekvenca s drugačijim uglom — neodlučni kupac ulazi u novi loop",d:"Retargeting loop koji neodlučnog kupca pretvara u kupca bez novog akvizicijskog troška",c:"#27AE60"}],
+  [{v:1,l:"Isporuka zavisi od prisutnosti i energiji osnivača — nema dokumentovanih procesa ni checklista koje bi tim koristio samostalno",d:"Svaka isporuka je improvizacija — kvalitet varira, burnout je neizbježan pri rastu",c:"#E05555"},{v:2,l:"Tim uglavnom zna što radi, ali procesi nisu dokumentovani — kad osnivač nije dostupan ili tim poraste, kvalitet pada",d:"Neformalni SOP koji postoji samo u glavi — ranjivo na bolest, odmor ili proširenje tima",c:"#C9A028"},{v:3,l:"SOP-ovi, onboarding checkliste za klijente, delivery template-i i QA koraci za svaki tip angažmana — tim isporučuje dosljedan standard nezavisno od osnivačeve prisutnosti",d:"Sistem koji isporučuje, osnivač koji vodi strategiju — osnova skalabilnog rasta bez burnout-a",c:"#27AE60"}],
+  [{v:1,l:"Fokus je na novim klijentima — post-purchase komunikacija gotovo ne postoji, a zadovoljni klijenti se ne aktiviraju kao kanal ponovnih kupovina ni preporuka",d:"Najskuplji mogući pristup: zanemaruje 5–25x jeftiniji kanal (retencija) u korist konstantne akvizicije",c:"#E05555"},{v:2,l:"Zahvalimo se klijentima i ponekad se javimo, ali nema automatizirane post-purchase sekvence koja sistematski gradi lojalnost i otvara upsell",d:"Ad hoc — rezultat zavisi od raspoloživosti tima i sjećanju, ne o sistemu",c:"#C9A028"},{v:3,l:"Zahvalnica odmah po kupovini, onboarding sekvenca, 30/60/90-dnevni check-in, NPS survey i personalizovana upsell ponuda kad je klijent najzadovoljniji",d:"Post-purchase sistem koji pretvara kupovinu u početak odnosa — a ne kraj transakcije",c:"#27AE60"}],
+  [{v:1,l:"Nema loyalty strategije — svaki klijent tretira se jednako bez segmentacije po lojalnosti, LTV-u ni frekvenciji kupovine",d:"Bez retencione logike, svaki tjedan počinje od nule — skuplje i nestabilnije od svakog alternativnog modela",c:"#E05555"},{v:2,l:"Vraćaju se zadovoljni klijenti, ali bez sistema koji ih prepoznaje, nagrađuje i proaktivno nudi relevantan sljedeći korak",d:"Slučajna retencija koja zavisi od entuzijazmu klijenta, ne o sistemu koji ga zadržava",c:"#C9A028"},{v:3,l:"RFM segmentacija, predsezonne i ekskluzivne ponude za lojalne, early access za nove ponude i automatizirani upsell/cross-sell tokovi bazirani na istoriji kupovine",d:"Retention sistem koji povećava LTV bez proporcionalnog rasta troška akvizicije",c:"#27AE60"}],
+  [{v:1,l:"Preporuke dolaze spontano — nema dizajniranog referral sistema, definisanog okidača ni nagrade koja bi sistematski povećavala WOM",d:"92% potrošača vjeruje preporukama iznad svih kanala, ali bez sistema to ostaje slučajna i neponovljiva priča",c:"#E05555"},{v:2,l:"Povremeno zamolimo zadovoljne klijente za preporuku, ali bez standardnog momenta, formata, praćenja ni nagrade",d:"Dobra intuicija bez sistema — neujednačeni rezultati koji ovise o sjećanju i raspoloženju",c:"#C9A028"},{v:3,l:"Definisani okidač momenat, jasan incentiv za referrala, tracking link ili kod i automatizirano nagrađivanje — referral je mjerljivi marketinški kanal s KPI-jem",d:"Referral sistem koji svaki zadovoljan klijent pretvara u akvizicijski kanal bez proporcionalnog troška",c:"#27AE60"}],
+  [{v:1,l:"Ne tražimo aktivno recenzije ni ne odgovaramo sistematski — reputacija se formira bez naše aktivne uloge",d:"Tržište kreira vašu sliku bez vas — uvijek u korist konkurencije koja to radi aktivno",c:"#E05555"},{v:2,l:"Pratimo recenzije i ponekad odgovaramo, ali nema automatizirane rutine prikupljanja, distribucije ni korišćenja testimonijala kao prodajnog materijala",d:"Reaktivno upravljanje reputacijom — bez strategije multiplikacije pozitivnih iskustava",c:"#C9A028"},{v:3,l:"Automatizirani review request odmah po isporuci, NPS tracking, video testimonijal template, odgovori na sve recenzije i strategija distribucije socijalnog dokaza po fazama funnela",d:"Reputacija kao 24/7 prodajni alat — socijalni dokaz koji zatvara prodaju umjesto vas",c:"#27AE60"}],
+  [{v:1,l:"Gotovo sva komunikacija s publikom dešava se na tuđim platformama (Instagram, Facebook, TikTok) — nema owned kanala koji garantuju direktan doseg",d:"Rentate pažnju na tuđim platformama — algoritam u svakom trenutku može ugasiti reach koji ste godinama gradili",c:"#E05555"},{v:2,l:"Imamo email listu, ali je ne aktiviramo dosljedno — šaljemo rijetko, sadržaj nije segmentiran ni sekvenciran prema cilju",d:"Owned kanal postoji ali ne radi — propuštena aktivacija najpouzdanijeg marketing kanala",c:"#C9A028"},{v:3,l:"Aktivan i segmentiran newsletter, SMS broadcast ili WhatsApp/Viber kanal i community platforma nezavisna od algoritama — owned doseg koji radi kao pouzdani kanal prihoda",d:"Owned media = neosjetljivi na algoritme, najniži CPM, ROI 42:1 (DMA) — jedini kanal koji vi zaista posjedujete",c:"#27AE60"}],
+  [{v:1,l:"Ciljna grupa definisana je široko — bez konkretnog problema, kupovnog okidača, ponašanja ni digitalnih navika profila koji zaista kupuje i preporučuje",d:"Bez jasnog ICP-a svaka marketing odluka je pogađanje — poruka ne rezonira, CAC raste, konverzija pada",c:"#E05555"},{v:2,l:"Imamo okvirnu sliku idealnog klijenta, ali nije dokumentovana ni ažurirana stvarnim podacima iz prodaja, customer interviews ni CRM istorije",d:"Intuitivno razumijevanje ciljne grupe koje ne skalira — svaki novi član tima kreće od različite pretpostavke",c:"#C9A028"},{v:3,l:"Dokumentovana ICP persona po demografiji, psihografiji, top 3 akutna problema, kupovnim okidačima, tipičnim prigovorima i primarnim digitalnim kanalima — koristi se kao obavezni filter za svaku odluku",d:"ICP kao kompas = sve marketinške odluke donose se brže, dosljednije i s višim conversion ratom",c:"#27AE60"}],
+  [{v:1,l:"Sve aktivnosti su prodajno orijentisane — svaki post, oglas i email nosi direktni CTA za kupovinu, bez prethodne faze gradnje prepoznatljivosti kod hladne publike",d:"Prodajni pritisak prema hladnoj publici = visok CPC, nizak ROAS i burn-out publike koja vas još ne poznaje",c:"#E05555"},{v:2,l:"Povremeno koristimo awareness kampanje, ali bez definisanog omjera budžeta između awareness i conversion faze ni zasebnih KPI-ja",d:"Nekoherentan funnel — ponekad toplo, ponekad hladno, bez sistema gradnje i konverzije publike",c:"#C9A028"},{v:3,l:"Full-funnel pristup: definisan split budžeta između awareness (hladna publika) i conversion faze (topla/retargetirana publika) sa zasebnim KPI-jevima i kreativima po fazi",d:"Google Ads 2024: awareness kampanje smanjuju CPC u conversion fazama za 38%. Full-funnel brendovi postižu 28% viši ROAS",c:"#27AE60"}],
+  [{v:1,l:"Kampanje planiramo reaktivno i kratkoročno — nema godišnjeg kampanjskog kalendara koji mapira aktivnosti prema sezonalnosti i kupovnim momentima",d:"Reaktivni marketing uvijek košta više i donosi manje — priprema je u žurbi, publika nije zagrijana",c:"#E05555"},{v:2,l:"Imamo otprilike plan kada oglašavati, ali bez dokumentovanog godišnjeg kalendara, predsezonskih awareness perioda ni post-kampanjskog retention plana",d:"Bolje od čisto reaktivnog, ali bez strukture — vrijednost se gubi u svakom ciklusu",c:"#C9A028"},{v:3,l:"Dokumentovani godišnji kampanjski kalendar: predsezonski awareness period 4–6 sedmica, aktivna kampanjska faza i post-kampanjska retention aktivacija",d:"HBR: planski marketinški kalendar = 42% viši ROI. Predsezonski awareness period smanjuje CPL za 27%",c:"#27AE60"}],
+  [{v:1,l:"Nije definisan customer journey — ne znamo koliko prosječno traje put kupca od prvog kontakta do kupovine ni gdje gubimo najviše ljudi",d:"Bez journey mape, budžet se troši na conversion oglas prema publici koja je još u awareness fazi",c:"#E05555"},{v:2,l:"Imamo opće razumijevanje funnela, ali nismo mapirali konkretne touchpointe, prosječno trajanje konverzije ni sadržaj koji podržava svaki korak",d:"Razumijevanje bez operativne mape — ne može se sistematski poboljšati ono što nije vizualizovano i mjereno",c:"#C9A028"},{v:3,l:"Dokumentovana customer journey mapa: Awareness → Consideration → Intent → Conversion → Advocacy, s prosječnim trajanjem po fazi, ključnim touchpointima i identifikovanim drop-off tačkama",d:"McKinsey 2024: optimizacija journeyа = +10–15% prihoda. Brendovi koji poznaju trajanje puta alociraju budžet 2,4x efikasnije",c:"#27AE60"}]
+  ],
+  BASE_Q:["Kada potencijalni klijent prvi put naiđe na vas — website, Instagram profil, LinkedIn stranica, GMB ili landing stranica oglasa — razumije li za 8 sekundi zašto vi, a ne konkurencija?","Da li vaš brend komunicira autentičnu priču koja gradi emociju i identitet — ili opisuje usluge i cijene kao svi ostali?","Imate li višeformatni content sistem prilagođen vašoj branši — ili objavljujete povremeno bez strateškog plana, repurposinga ili edukativne logike?","Imate li content strategiju koja privlači organski saobraćaj sa pretraživača i AI platformi — ili sav promet zavisi od budžeta za oglase?","Znate li CAC po kanalu i formatu, i LTV svakog segmenta klijenata — i alociritate li budžet prema LTV:CAC omjeru?","Koristi li vaš biznis strateški partnerstva, earned media i mikro-influencere kao akvizicijski kanal — ili se oslanjate isključivo na plaćene oglase?","Imate li community platformu u vašem vlasništvu koja radi nezavisno od algoritama društvenih mreža?","Imate li automatizirani first-touch sistem koji aktivira novi kontakt u roku 15 minuta, bez ručnog rada?","Imate li lead magnet prilagođen vašoj branši koji aktivno i kontinuirano popunjava email listu kvalifikovanim kontaktima?","Imate li automatizovanu nurturing sekvencu koja vodi novi kontakt od prvog dodira prema odluci o kupovini — s behaviour-triggered grananjem?","Je li vaša baza podijeljena po fazi kupovnog puta, tipu klijenta i behaviour signalima — i dobija li svaki segment drugačiji sadržaj, CTA i ritam komunikacije?","Znate li tačno koliko posjetilaca vašeg digitalnog prisustva konvertuje u lead — i optimizujete li sistematski stranice i korake gdje gubite ljude?","Imate li automatizirani sistem koji kvalifikuje leade prije nego vaš tim uloži vrijeme?","Imate li trostepenu arhitekturu ponude (Entry → Core → Premium) koja svakom kupcu daje relevantnu opciju i jasan put naprijed?","Prodaju li vaši materijali — case studies, FAQ, proposal — umjesto vas, bez vaše direktne prisutnosti u svakom razgovoru?","Vidite li u svakom trenutku koliko leada imate u pipelinu, u kojoj su fazi i ko čeka follow-up danas?","Kada kupac pokaže interesovanje ali ne kupi odmah — imate li automatizirani sistem koji ga zadržava u lopu i vraća u pravi trenutak?","Može li vaš tim isporučiti dosljednu vrijednost i bez vaše direktne uključenosti — kroz dokumentovane SOP-ove i standarde?","Šta vaš sistem radi NAKON prodaje — i kako taj period sistematski pretvara u lojalnost, upsell i preporuke?","Koliko prihoda dolazi od postojećih klijenata — i imate li sistem koji ih segmentira, nagrađuje i aktivno vodi ka sljedećoj kupovini?","Koliko novih klijenata dolazi kroz preporuku — i imate li dizajnirani referral sistem s definisanim okidačem i mjerljivim KPI-jem?","Upravljate li javnom reputacijom aktivno — recenzije, NPS, testimonijali — kao direktnim prodajnim kanalom koji radi 24/7?","Koliko vaš prihod zavisi od algoritama tuđih platformi — i imate li owned kanale koji garantuju direktan doseg nezavisno?","Imate li jasno dokumentovan profil idealnog klijenta (ICP) koji određuje svaku vašu marketinšku odluku?","Da li vaš marketing ima plansku ravnotežu između awareness kampanja i conversion kampanja — ili sve aktivnosti idu prema istoj publici s istim ciljem?","Imate li godišnji kampanjski kalendar koji mapira aktivnosti prema sezonalnosti, kupovnim momentima i poslovnim ciljevima?","Da li ste mapirali put vašeg kupca od prvog kontakta do kupovine i dalje — s definisanim fazama, prosječnim vremenom konverzije i sadržajem koji prati svaki korak?"],
+  WHY_BASE:["Microsoft Research: korisnik procjenjuje web prisustvo u prvih 8 sekundi. HubSpot 2024: brendovi s jasnim pozicioniranjem imaju 3,7x viši conversion rate i 23% niži CAC.","Edelman Trust Barometer 2024: 81% mora vjerovati brendu prije kupovine. HBR: emocionalna brand priča povećava kupovnu namjeru za 55% i lojalnost za 44%.","Content Marketing Institute 2024: kompanije s content strategijom generišu 6x više leada. Repurposing smanjuje trošak sadržaja za 67%.","BrightEdge 2024: organski search = 53% ukupnog web saobraćaja. Sa rastom AI pretraživača, GEO optimizacija postaje novi standard. Organski kupac ima 3,1x viši LTV.","Wordstream 2024: kompanije koje ne prate CAC/LTV prepladuju akviziciju za 40%. Meta Ads CPM porastao za 89% od 2020. LTV:CAC ≥ 3:1 = osnova profitabilnog oglašavanja.","Nielsen 2024: earned media ima 3x veći trust score od paid. Hinge Marketing: strateška partnerstva generišu 23% novih klijenata bez direktnog troška.","Edelman 2024: 82% potrošača bira brendove koji dijele vrijednosti. Instagram organski reach pao za 63% od 2019.","HBR: vjerovatnoća konverzije pada 7x svaki sat kašnjenja. InsideSales: automatizirani response unutar 5 min = 9x veća šansa za konverziju.","DMA 2024: email lista ima ROI 42:1 i jedina je vlasništvo kompanije. Specifičan lead magnet konvertira 3–5x bolje od generičkog.","Salesforce 2024: potrebno je 6–8 touchpoints prije odluke. Behaviour-triggered sekvence konvertiraju 9x bolje od temporalnih broadcast emailova.","McKinsey 2024: personalizovana komunikacija po fazi = 10–15% viši prihod i 20–30% manji churn. Mailchimp: segmentirane kampanje imaju 100,95% viši CTR.","Baymard Institute 2024: 70% korisnika napusti proces bez CRO optimizacije. Heatmapa i A/B testiranje povećavaju konverziju prosječno za 34%.","Forrester 2024: prosječni prodajni tim troši 21% vremena na nekvalificirane leade. Automatizirani qualifier povećava produktivnost tima za 29%.","HBR — Paradox of Choice: previše opcija bez logike smanjuje kupovinu. Tro-nivelna offer arhitektura povećava CLTV za 2,3x.","Demand Gen Report 2024: B2B kupci konzultuju 5–7 komada sadržaja prije prvog razgovora. Standardizovani sales enablement materijali skraćuju sales cycle za 38%.","Salesforce State of Sales 2024: CRM s automatizirani follow-upom = 29% viši win rate i 34% bolja produktivnost. Bez CRM-a propusti se 28% follow-up kontakata.","Samo 3% saobraćaja kupuje odmah. Retargeting loop vraća 97% koji nisu — uz CPM koji je 10x niži od akvizicijskog.","Deloitte 2024: SOP-i = 3,4x brži onboarding i 67% manji uticaj odlaska ključnog člana. Bain: dosljednost isporuke = retention faktor #1.","Bain & Company: akvizicija novog klijenta košta 5–25x više od zadržavanja. 80% kupaca smatra post-purchase iskustvo jednako važnim kao sam proizvod.","Bain & Company: retencija +5% = profit +25–95%. RFM segmentacija identificira VIP klijente koji troše 5x više.","Nielsen 2024: 92% vjeruje preporukama iznad svih ostalih kanala. Referred klijent ima 16–25% viši LTV (Wharton). Formalni referral program = 3–5x više preporuka.","BrightLocal 2024: 98% čita online recenzije. Temkin Group: NPS > 60 = 2,7x brži rast. Video testimonijal povećava konverziju sales stranice za 86%.","Hootsuite 2024: Facebook organic reach = 2,2% — pad od 78% od 2018. DMA: email lista ROI = 42:1, nezavisna od algoritama.","HubSpot 2024: brendovi s dokumentovanim ICP-om imaju 2,7x viši conversion rate i 36% kraći sales cycle. SiriusDecisions: 67% izgubljenih prodaja posljedica je loše definisane ciljne grupe.","Google Ads Benchmark 2024: awareness kampanje smanjuju CPC u conversion fazama za 38%. Full-funnel brendovi postižu 28% viši ROAS (Meta Business Research).","Harvard Business Review: kompanije s planskim kalendarom imaju 42% viši ROI i 31% manji trošak po akviziciji. Predsezonski awareness period smanjuje CPL za 27%.","McKinsey 2024: optimizacija customer journeya povećava prihod za 10–15% i smanjuje trošak usluge za 15–20%. Brendovi koji poznaju trajanje puta alociraju budžet 2,4x efikasnije."]
+},
+en:{
+  SECTORS:["Hospitality / Tourism","Wellness / Beauty / Fitness","Finance / Insurance","B2B Consulting / Agency","Personal Brand / Coach / Educator","Retail / E-commerce"],
+  PHASES:[
+    {n:"01",t:"INPUT",s:"Marketing that attracts, not chases",qs:[23,24,25,0,1,2,3,4,5,6]},
+    {n:"02",t:"ACTIVATION",s:"From first contact to first YES",qs:[7,8,9,10,11,12,26]},
+    {n:"03",t:"ACTION",s:"Sales that doesn't sell — it convinces",qs:[13,14,15,16,17]},
+    {n:"04",t:"OUTPUT",s:"Where marketing becomes unpaid",qs:[18,19,20,21,22]}
+  ],
+  PQ:[], // keep English options compact if not used
+  BASE_Q:["When a potential client first encounters you — website, Instagram profile, LinkedIn page, GMB or ad landing page — do they understand within 8 seconds why you and not your competition?","Does your brand communicate an authentic story that builds emotion and identity — or does it simply describe services and prices like everyone else?","Do you have a multi-format content system adapted to your industry — or do you publish occasionally without a strategic plan, repurposing, or educational logic?","Do you have a content strategy that attracts organic traffic from search engines and AI platforms — or does all your traffic depend on ad budget?","Do you know your CAC per channel and format, and the LTV of each client segment — and do you allocate your budget based on LTV:CAC ratio?","Does your business systematically leverage partnerships, earned media, and micro-influencers as an acquisition channel — or do you rely solely on paid ads?","Do you have a community platform owned by you that works independently of social media algorithms?","Do you have an automated first-touch system that activates a new contact within 15 minutes, without manual effort?","Do you have a lead magnet tailored to your industry that actively and continuously fills your email list with qualified contacts?","Do you have an automated nurturing sequence that guides a new contact from first touch toward a buying decision — with behaviour-triggered branching?","Is your audience list segmented by buyer journey stage, client type, and behavioural signals — with each segment receiving different content, CTAs, and communication pace?","Do you know exactly how many visitors convert into leads — and do you systematically optimise the pages and steps where you lose the most people?","Do you have an automated system that qualifies leads before your team invests time?","Do you have a three-tier offer architecture (Entry → Core → Premium) that gives every buyer a relevant option at their stage of readiness?","Do your sales materials — case studies, FAQ, proposal — sell for you without your direct presence in every conversation?","Do you have full visibility into your sales pipeline at any moment — which leads are where, in what stage, and who needs a follow-up today?","When a buyer shows interest but doesn't purchase immediately — do you have an automated system that keeps them in the loop and brings them back?","Can your team deliver consistent value without your direct involvement — through documented SOPs and standards?","What does your system do AFTER the sale — and how does that period systematically convert into loyalty, upsells, and referrals?","What share of revenue comes from existing clients — and do you have a system that segments, rewards, and actively guides them toward the next purchase?","What percentage of new clients comes through referrals — and do you have a designed referral system with a defined trigger and measurable KPI?","Do you actively manage your public reputation — reviews, NPS, testimonials — as a direct sales channel that works 24/7?","How much does your revenue depend on third-party platform algorithms — and do you have owned channels guaranteeing direct reach independently?","Do you have a clearly documented Ideal Client Profile (ICP) — driving every marketing decision?","Does your marketing have a planned balance between awareness campaigns and conversion campaigns — or do all activities target the same audience with the same objective?","Do you have an annual campaign calendar that maps activities to seasonality, audience buying moments, and business goals?","Have you mapped your buyer's journey from first contact to purchase and beyond — with defined stages, average conversion time, and content that supports each step?"],
+  WHY_BASE:["","","","","","","","","","","","","","","","","","","","","","","","","","",""]
+}
+};
+DATA.en.PQ = DATA.mn.PQ;
+
+// ─── UI STRINGS ───────────────────────────────────────────────────────────────
+const UI={
+mn:{
+  su:"WELLBEING COMPASS",t1:"Marketing & Prodaja",t2:"Dijagnostika",
+  desc:"Marketing i prodaja nisu aktivnosti. Oni su sistem. Ako nisu povezani, mjereni i vođeni strategijom — rast postaje slučajan, skup i neodrživ.",
+  lblE:"EMAIL ADRESA *",lblC:"NAZIV BIZNISA (OPCIONALNO)",lblS:"BRANŠA *",sph:"Izaberite branšu",ePh:"vas@email.com",cPh:"Naziv kompanije / brenda",
+  note:"~12 minuta · 27 pitanja · Growth Loop metodologija",
+  btnGo:"Pokrenuti Dijagnostiku →",qLbl:"PITANJE",ofLbl:"OD",wShow:"▶ Zašto je ovo pitanje važno?",wHide:"▼ Sakrij istraživanje",wTit:"Istraživanja iza ovog pitanja:",
+  btnN:"Sljedeće pitanje →",btnR:"Pogledaj rezultate →",btnB:"← Nazad",btnReset:"↺ Nova dijagnostika",btnPDF:"⬇ Preuzmi izvještaj (PDF)",
+  resT:"DIJAGNOSTIKA ZAVRŠENA",resSub:"Vaš Growth System Izvještaj",scoreL:"UKUPNI SCORE",gapL:"KRITIČNI GAPOVI — HITNA INTERVENCIJA",strL:"SISTEMSKE SNAGE — GRADITE NA OVOME",
+  recL:"PRVI PRIORITETI",ctaT:"Zakažite razgovor o vašem biznisu.",ctaD:"Na osnovu vaše dijagnostike, u jednom razgovoru od 45 minuta mapiramo gdje vaš sistem gubi prihod i identifikujemo konkretne sljedeće korake. Bez obaveze.",
+  fName:"IME I PREZIME",fEmail:"EMAIL",fComp:"NAZIV BIZNISA",fSec:"BRANŠA *",fSph:"Odaberi branšu",fChl:"GDJE JE VAŠ NAJVEĆI IZAZOV TRENUTNO?",fMsg:"PORUKA (OPCIONALNO)",fMPh:"Ukratko opišite gdje se vaš biznis trenutno nalazi...",fBtn:"Zakaži razgovor →",fSend:"Šaljem...",
+  fOkT:"Hvala. Javljamo se uskoro.",fOkD:"Primili smo vaš zahtjev. Javićemo se u roku 24 sata da dogovorimo razgovor koji je konkretan, fokusiran i bez obaveze.",fOkN:"Vaš dijagnostički izvještaj je sačuvan — ponesite ga na razgovor.",
+  eEmail:"Unesite validnu email adresu.",eName:"Unesite vaše ime.",eSec:"Odabir branše je obavezan.",eSecF:"Odaberite vašu branšu.",curS:"Trenutno stanje:",
+  chl:["Privlačenje klijenata","Konverzija leada","Retencija i repeat","ICP definicija","Kampanjski miks","Automatizacija i CRM","Brand i pozicioniranje","Mjerenje ROI"],
+  nxtStep:"SLJEDEĆI KORAK",namePh:"Vaše ime",
+  scores:[
+    {max:1.5,c:"#E05555",d:"Marketing funkcioniše kao niz izoliranih kampanja. Svaki euro se troši skuplje nego što mora biti.",n:"Hitna intervencija u sistemskoj arhitekturi je potrebna prije povećanja budžeta."},
+    {max:2.0,c:"#C9A028",d:"Značajni gapovi u više faza. Sistem ima temelj, ali veliki curovi sprečavaju stabilan rast.",n:"Prioritet: zatvoriti kritične gapove prije skaliranja ijednog kanala."},
+    {max:2.5,c:"#3A8FD4",d:"Vaš marketing ima solidan temelj. Optimizacija gapova vodi do eksponencijalnog rasta.",n:"Sljedeći nivo: automatizacija i skaliranje onoga što već radi."},
+    {max:3.1,c:"#27AE60",d:"Snažan sistemski pristup. Imate infrastrukturu za održiv, skalabilan rast.",n:"Fokus: doradi, optimiziraj i otključaj sljedeći tier rasta."}
+  ],
+  priorities:{
+    "01":"Razjasniti ICP, poziciju i poruku na svim touchpointima.",
+    "02":"Uvesti lead magnet, nurturing i automatizirani first-touch.",
+    "03":"Postaviti offer ladder, sales materijale i CRM follow-up disciplinu.",
+    "04":"Aktivirati retention, referral i review sistem kao kanal rasta."
+  },
+  foot:"Wellbeing Compass · Jelena Milatović · Podgorica, Crna Gora · 2026"
+},
+en:{
+  su:"WELLBEING COMPASS",t1:"Marketing & Sales",t2:"Diagnostic",
+  desc:"Marketing and sales are not activities. They are a system. If they aren't connected, measured, and strategy-led — growth becomes random, expensive, and unsustainable.",
+  lblE:"EMAIL ADDRESS *",lblC:"BUSINESS / BRAND (OPTIONAL)",lblS:"INDUSTRY *",sph:"Select your industry",ePh:"your@email.com",cPh:"Company / brand name",
+  note:"~12 minutes · 27 questions · Growth Loop methodology",
+  btnGo:"Start Diagnostic →",qLbl:"QUESTION",ofLbl:"OF",wShow:"▶ Why does this matter?",wHide:"▼ Hide research",wTit:"Research behind this question:",
+  btnN:"Next Question →",btnR:"View Results →",btnB:"← Back",btnReset:"↺ Run a new diagnostic",btnPDF:"⬇ Download Report (PDF)",
+  resT:"DIAGNOSTIC COMPLETE",resSub:"Your Growth System Report",scoreL:"OVERALL SCORE",gapL:"CRITICAL GAPS — URGENT INTERVENTION",strL:"SYSTEMATIC STRENGTHS — BUILD ON THESE",
+  recL:"FIRST PRIORITIES",ctaT:"Book a conversation about your business.",ctaD:"Based on your diagnostic, in one 45-minute conversation we map where your system is losing revenue and identify the concrete next steps. No obligation.",
+  fName:"FULL NAME",fEmail:"EMAIL",fComp:"COMPANY / BRAND",fSec:"INDUSTRY *",fSph:"Select industry",fChl:"WHERE IS YOUR BIGGEST CHALLENGE RIGHT NOW?",fMsg:"MESSAGE (OPTIONAL)",fMPh:"Briefly describe where your business is now and what you'd like to achieve...",fBtn:"Book a Conversation →",fSend:"Sending...",
+  fOkT:"Thank you. We'll be in touch shortly.",fOkD:"We've received your request. We'll reach out within 24 hours to schedule a conversation that is concrete, focused, and without obligation.",fOkN:"Your diagnostic report has been saved — bring it to the conversation.",
+  eEmail:"Please enter a valid email address.",eName:"Please enter your name.",eSec:"Please select your industry.",eSecF:"Please select your industry.",curS:"Current state:",
+  chl:["Attracting new clients","Converting leads","Retention & repeat","Defining ICP","Campaign mix & budget","Automation & CRM","Brand & positioning","Measurement & ROI"],
+  nxtStep:"NEXT STEP",namePh:"Your name",
+  scores:[
+    {max:1.5,c:"#E05555",d:"Marketing is functioning as a series of isolated campaigns. Every euro is spent more expensively than it needs to be.",n:"Urgent intervention in system architecture required before increasing budget."},
+    {max:2.0,c:"#C9A028",d:"Significant gaps across multiple phases. The system has a foundation, but major leaks are preventing stable growth.",n:"Priority: close critical gaps before scaling any single channel."},
+    {max:2.5,c:"#3A8FD4",d:"Your marketing has a solid foundation. Optimising the gaps leads to exponential growth.",n:"Next level: automation and scaling what's already working."},
+    {max:3.1,c:"#27AE60",d:"Strong systematic approach. You have the infrastructure for sustainable, scalable growth.",n:"Focus: refine, optimise, and unlock the next growth tier."}
+  ],
+  priorities:{
+    "01":"Clarify ICP, positioning, and message across all touchpoints.",
+    "02":"Implement lead magnet, nurturing, and automated first touch.",
+    "03":"Set up offer ladder, sales materials, and CRM follow-up discipline.",
+    "04":"Activate retention, referral, and review systems as growth channels."
+  },
+  foot:"Wellbeing Compass · Jelena Milatović · Podgorica, Montenegro · 2026"
+}
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let S={page:"intro",pi:0,qi:0,ans:{},email:"",company:"",sector:"",why:false,eErr:false,sErr:false,lang:"mn"};
+const D=()=>DATA[S.lang];
+const T=()=>UI[S.lang];
+const totalQuestions=()=>D().PHASES.reduce((a,p)=>a+p.qs.length,0);
+
+function switchLang(){
+  S.lang=S.lang==="mn"?"en":"mn";
+  document.getElementById("lb").textContent=S.lang==="mn"?"EN":"MNE";
+  document.documentElement.lang=S.lang==="mn"?"bs":"en";
+  render();
+}
+
+function phOf(i){return D().PHASES.find(p=>p.qs.includes(i));}
+
+function phaseAverages(){
+  return D().PHASES.map(p=>p.qs.reduce((a,i)=>a+(S.ans[i]||0),0)/p.qs.length);
+}
+
+function overallAverage(){
+  const avgs=phaseAverages();
+  return avgs.reduce((a,b)=>a+b,0)/avgs.length;
+}
+
+function scoreCard(){
+  const g=overallAverage();
+  return T().scores.find(s=>g<s.max)||T().scores[T().scores.length-1];
+}
+
+function scorePercent(){
+  return Math.round((overallAverage()/3)*100);
+}
+
+function criticalGaps(){
+  return Object.entries(S.ans).filter(([,v])=>v===1).map(([k])=>parseInt(k,10));
+}
+
+function strengths(){
+  return Object.entries(S.ans).filter(([,v])=>v===3).map(([k])=>parseInt(k,10));
+}
+
+function phasePercent(i){
+  const avgs=phaseAverages();
+  return Math.round((avgs[i]/3)*100);
+}
+
+function topPriorities(){
+  const avgs=phaseAverages().map((avg,i)=>({avg,i,phase:D().PHASES[i]})).sort((a,b)=>a.avg-b.avg).slice(0,2);
+  return avgs.map(x=>({phase:x.phase, text:T().priorities[x.phase.n]}));
+}
+
+function getSubmissionSummary(){
+  const d=D(), u=T();
+  const phaseText=d.PHASES.map((p,i)=>`${p.t}: ${phasePercent(i)}/100`).join(" | ");
+  const gapsText=criticalGaps().slice(0,5).map(i=>`Q${i+1}: ${d.BASE_Q[i]}`).join(" || ") || "-";
+  const strengthsText=strengths().slice(0,5).map(i=>`Q${i+1}: ${d.BASE_Q[i]}`).join(" || ") || "-";
+  const summary = [
+    `${u.scoreL}: ${scorePercent()}/100`,
+    `Faze: ${phaseText}`,
+    `${u.gapL}: ${gapsText}`,
+    `${u.strL}: ${strengthsText}`
+  ].join(" \n ");
+  return {
+    phase_scores: phaseText,
+    critical_gaps: gapsText,
+    strengths: strengthsText,
+    summary_text: summary
+  };
+}
+
+function render(){
+  document.getElementById("lb").textContent=S.lang==="mn"?"EN":"MNE";
+  const r=document.getElementById("root");
+  if(S.page==="intro") r.innerHTML=introH();
+  else if(S.page==="quiz") r.innerHTML=quizH();
+  else r.innerHTML=resH();
+  bind();
+}
+
+// ─── INTRO ────────────────────────────────────────────────────────────────────
+function introH(){
+  const u=T(),d=D();
+  return `<div class="fade" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;background:var(--bg)">
+<div style="max-width:540px;width:100%">
+  <div style="text-align:center;margin-bottom:36px">
+    <div class="lbl" style="margin-bottom:16px;font-size:10px;letter-spacing:8px">${u.su}</div>
+    <h1 style="font-size:clamp(30px,7vw,48px);font-weight:700;color:#E8F2FF;line-height:1.1;margin-bottom:4px;letter-spacing:-.5px">${u.t1}</h1>
+    <h1 style="font-size:clamp(30px,7vw,48px);font-weight:700;color:var(--blue);line-height:1.1;margin-bottom:20px;letter-spacing:-.5px">${u.t2}</h1>
+    <div style="width:48px;height:3px;background:linear-gradient(90deg,var(--blue2),var(--blue));border-radius:2px;margin:0 auto 20px"></div>
+    <p style="color:#4A7090;font-size:14px;line-height:1.9;max-width:420px;margin:0 auto">${u.desc}</p>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px">
+    ${d.PHASES.map((p,i)=>{const pct=[10,7,5,5][i];return `<div class="ph-card" style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px 14px">
+      <div style="font-size:11px;letter-spacing:4px;color:var(--muted);font-family:'Courier New',monospace;margin-bottom:8px">0 ${i+1}</div>
+      <div style="font-size:16px;font-weight:700;color:#D8ECF8;margin-bottom:6px;letter-spacing:.3px">${p.t}</div>
+      <div style="font-size:12px;color:#2A5070;line-height:1.55;margin-bottom:8px">${p.s}</div>
+      <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace">${pct} pitanja</div>
+    </div>`;}).join("")}
+  </div>
+  <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:13px;padding:22px;margin-bottom:20px">
+    <div class="lbl" style="margin-bottom:16px">${S.lang==="mn"?"VAŠI PODACI":"YOUR DETAILS"}</div>
+    <div class="lbl" style="margin-bottom:6px">${u.lblE}</div>
+    <input id="ie" type="email" placeholder="${u.ePh}" value="${S.email}" class="${S.eErr?"ferr":""}" />
+    ${S.eErr?`<div class="err-msg">${u.eEmail}</div>`:""}
+    <div class="lbl" style="margin-bottom:6px">${u.lblC}</div>
+    <input id="ic" type="text" placeholder="${u.cPh}" value="${S.company}" />
+    <div class="lbl" style="margin-bottom:6px">${u.lblS}</div>
+    <select id="is" class="${S.sErr?"ferr":""}">
+      <option value="">${u.sph}</option>
+      ${d.SECTORS.map(s=>`<option value="${s}"${S.sector===s?" selected":""}>${s}</option>`).join("")}
+    </select>
+    ${S.sErr?`<div class="err-msg">${u.eSec}</div>`:""}
+  </div>
+  <p style="text-align:center;font-size:12px;color:var(--dim);margin-bottom:14px">${u.note}</p>
+  <button class="btn btn-main" id="bgo">${u.btnGo}</button>
+</div></div>`;
+}
+
+// ─── QUIZ ─────────────────────────────────────────────────────────────────────
+function quizH(){
+  const u=T(),d=D();
+  const ph=d.PHASES[S.pi];
+  const qi=ph.qs[S.qi];
+  const tot=totalQuestions();
+  const done=d.PHASES.slice(0,S.pi).reduce((a,p)=>a+p.qs.length,0)+S.qi;
+  const sel=S.ans[qi];
+  const opts=d.PQ[qi];
+  const isLast=S.pi===d.PHASES.length-1&&S.qi===ph.qs.length-1;
+  return `<div class="fade" style="min-height:100vh;padding:0 0 40px;background:var(--bg)">
+  <div style="position:sticky;top:0;z-index:10;background:var(--bg);padding:14px 20px 10px;border-bottom:1px solid rgba(255,255,255,0.05)">
+    <div style="max-width:520px;margin:0 auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="lbl">${u.qLbl} ${done+1} ${u.ofLbl} ${tot}</div>
+        <div class="lbl">${ph.n} · ${ph.t}</div>
+      </div>
+      <div class="prog"><div class="prog-f" style="width:${Math.round((done/tot)*100)}%"></div></div>
+      <div style="display:flex;margin-top:10px;gap:4px">
+        ${d.PHASES.map((p,i)=>{const dn=p.qs.every(q=>S.ans[q]);return `<div class="ph-tab${i===S.pi?" on":""}">
+          <div style="font-size:9px;letter-spacing:2px;color:${i===S.pi?"#7ABDE0":dn?"#27AE60":"#1A3040"};font-family:'Courier New',monospace">${p.n}${dn?" ✓":""}</div>
+          <div style="font-size:10px;color:${i===S.pi?"#B0C4D8":dn?"#27AE60":"#1A3040"};margin-top:2px">${p.t}</div>
+        </div>`;}).join("")}
+      </div>
+    </div>
+  </div>
+  <div style="max-width:520px;margin:0 auto;padding:22px 20px 0">
+    <p style="font-size:14px;color:#A0B8C8;line-height:1.85;margin-bottom:6px">${d.BASE_Q[qi]}</p>
+    <button id="bw" style="background:none;border:none;color:var(--blue);font-size:11px;cursor:pointer;padding:4px 0;font-family:'Courier New',monospace;letter-spacing:1px;margin-bottom:14px">${S.why?u.wHide:u.wShow}</button>
+    <div class="why-box${S.why?" open":""}"><strong>${u.wTit}</strong><br>${d.WHY_BASE[qi]||""}</div>
+    <div style="margin-top:16px">
+      ${opts.map(o=>`<button class="opt${sel===o.v?" sel":""}" data-v="${o.v}">
+        <div class="dot" style="${sel===o.v?`background:${o.c};border-color:${o.c}`:""}"></div>
+        <div style="flex:1">
+          <div style="font-size:13px;color:${sel===o.v?o.c:"#8A9AAA"};line-height:1.6;font-weight:${sel===o.v?"600":"400"}">${o.l}</div>
+          ${sel===o.v?`<div style="font-size:11px;color:${o.c}AA;margin-top:5px;line-height:1.55;font-style:italic">${o.d}</div>`:""}
+        </div>
+      </button>`).join("")}
+    </div>
+    ${sel?`<button class="btn btn-main" id="bn" style="margin-top:18px">${isLast?u.btnR:u.btnN}</button>`:""}
+    <button class="btn btn-ghost" id="bb" style="margin-top:8px">${u.btnB}</button>
+  </div></div>`;
+}
+
+// ─── RESULTS ──────────────────────────────────────────────────────────────────
+function resH(){
+  const u=T(),d=D();
+  const sc=scoreCard();
+  const pct=scorePercent();
+  const gaps=criticalGaps();
+  const str=strengths();
+  const priorities=topPriorities();
+  const LBL={mn:{"1":"Kritični Gap","2":"Parcijalni Sistem","3":"Sistemska Snaga"},en:{"1":"Critical Gap","2":"Partial System","3":"Systematic Strength"}};
+
+  return `<div class="fade" style="min-height:100vh;padding:28px 20px 40px;background:var(--bg)">
+  <div style="max-width:520px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:22px">
+      <div class="lbl" style="margin-bottom:8px;letter-spacing:6px">${u.resT}</div>
+      <h2 style="font-size:20px;color:#E8F2FF;font-weight:700;margin-bottom:5px">${u.resSub}</h2>
+      ${S.company?`<div style="font-size:12px;color:var(--muted)">${S.company}${S.sector?" · "+S.sector:""}</div>`:""}
+    </div>
+
+    <div style="background:var(--card);border:1px solid rgba(58,143,212,0.15);border-radius:16px;padding:28px;margin-bottom:16px;text-align:center">
+      <div class="lbl" style="margin-bottom:12px">${u.scoreL}</div>
+      <div style="font-size:72px;font-weight:700;color:${sc.c};line-height:1;margin-bottom:8px">${pct}<span style="font-size:22px;color:var(--dim)">/100</span></div>
+      <div style="width:100%;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;margin:14px 0"><div style="height:100%;width:${pct}%;background:${sc.c};border-radius:3px;transition:width 1s ease"></div></div>
+      <p style="color:#4A7090;font-size:13px;line-height:1.75;max-width:430px;margin:10px auto 8px">${sc.d}</p>
+      <div style="font-size:11px;color:${sc.c};padding:8px 16px;background:${sc.c}18;border-radius:8px;display:inline-block;margin-top:6px;line-height:1.6">${sc.n}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      ${d.PHASES.map((p,i)=>{const pc=phasePercent(i); const avg=phaseAverages()[i]; const r=Math.round(avg)||1; const col=r===1?"#E05555":r===2?"#C9A028":"#27AE60"; const ll=(LBL[S.lang])[r]; return `<div style="background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:11px;padding:16px">
+        <div class="lbl" style="margin-bottom:4px">${p.n}</div>
+        <div style="font-size:14px;font-weight:700;color:#C8DCF0;margin-bottom:8px">${p.t}</div>
+        <div style="font-size:28px;font-weight:700;color:${col};line-height:1;margin-bottom:5px">${pc}<span style="font-size:11px;color:var(--dim)">/100</span></div>
+        <div style="width:100%;height:2px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:6px"><div style="height:100%;width:${pc}%;background:${col};border-radius:2px"></div></div>
+        <div style="font-size:10px;color:${col};font-weight:600;letter-spacing:1px">${ll}</div>
+      </div>`;}).join("")}
+    </div>
+
+    <div style="background:rgba(58,143,212,0.05);border:1px solid rgba(58,143,212,0.14);border-radius:12px;padding:18px;margin-bottom:16px">
+      <div class="lbl" style="color:#7ABDE0;margin-bottom:10px;letter-spacing:3px">${u.recL}</div>
+      ${priorities.map(x=>`<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+        <div class="rdot" style="background:#3A8FD4;margin-top:5px"></div>
+        <div>
+          <div style="font-size:11px;color:#7ABDE0;font-weight:600;margin-bottom:3px">${x.phase.n} · ${x.phase.t}</div>
+          <div style="font-size:12px;color:#92AFC4;line-height:1.65">${x.text}</div>
+        </div>
+      </div>`).join("")}
+    </div>
+
+    <button class="btn btn-pdf" id="bpdf">${u.btnPDF}</button>
+
+    ${gaps.length?`<div style="margin:16px 0">
+      <div class="lbl" style="color:#E05555;margin-bottom:12px;letter-spacing:3px">${u.gapL}</div>
+      ${gaps.map(i=>{const ph=phOf(i),o1=d.PQ[i]?d.PQ[i][0]:null;return `<div style="background:rgba(224,85,85,0.05);border:1px solid rgba(224,85,85,0.14);border-left:3px solid rgba(224,85,85,0.45);border-radius:9px;padding:13px 14px;margin-bottom:8px">
+        <div class="lbl" style="color:#E05555;margin-bottom:4px;font-size:9px">${ph?ph.n+" "+ph.t:""} · Q${i+1}</div>
+        <div style="font-size:12px;color:#8A6868;line-height:1.6;margin-bottom:6px">${d.BASE_Q[i]}</div>
+        ${o1?`<div style="font-size:11px;color:#6A4040;font-style:italic;line-height:1.6;padding:7px 10px;background:rgba(224,85,85,0.04);border-radius:5px">${u.curS} ${o1.l}</div>`:""}
+      </div>`;}).join("")}
+    </div>`:""}
+
+    ${str.length?`<div style="background:rgba(39,174,96,0.04);border:1px solid rgba(39,174,96,0.12);border-radius:12px;padding:18px;margin-bottom:16px">
+      <div class="lbl" style="color:#27AE60;margin-bottom:12px;letter-spacing:3px">${u.strL}</div>
+      ${str.map(i=>{const ph=phOf(i),o3=d.PQ[i]?d.PQ[i][2]:null;return `<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:8px">
+        <div class="rdot" style="background:#27AE60;margin-top:5px;flex-shrink:0"></div>
+        <div><div style="font-size:11px;color:#27AE60;font-weight:600;margin-bottom:2px">${ph?ph.n+" "+ph.t:""} · Q${i+1}</div>
+        ${o3?`<div style="font-size:11px;color:#3A6A50;line-height:1.5">${o3.d}</div>`:""}</div>
+      </div>`;}).join("")}
+    </div>`:""}
+
+    <div style="background:linear-gradient(160deg,rgba(27,95,140,0.25),rgba(58,143,212,0.07));border:1px solid rgba(58,143,212,0.2);border-radius:16px;padding:30px 24px 26px;margin-bottom:14px">
+      <div class="lbl" style="margin-bottom:12px;text-align:center;letter-spacing:5px">${u.nxtStep}</div>
+      <h3 style="font-size:19px;color:#E8F2FF;margin:0 0 10px;font-weight:700;text-align:center;letter-spacing:-.3px">${u.ctaT}</h3>
+      <p style="color:#4A7090;font-size:13px;line-height:1.85;max-width:450px;margin:0 auto 22px;text-align:center">${u.ctaD}</p>
+      <div id="cfw">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div><div class="lbl" style="margin-bottom:6px">${u.fName}</div><input id="fn" type="text" placeholder="${u.namePh}" style="margin-bottom:0"/></div>
+          <div><div class="lbl" style="margin-bottom:6px">${u.fEmail}</div><input id="fe" type="email" placeholder="${u.ePh}" style="margin-bottom:0"/></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div><div class="lbl" style="margin-bottom:6px">${u.fComp}</div><input id="fb" type="text" placeholder="${u.cPh}" style="margin-bottom:0"/></div>
+          <div><div class="lbl" style="margin-bottom:6px">${u.fSec}</div>
+            <select id="fi" style="margin-bottom:0">
+              <option value="">${u.fSph}</option>
+              ${d.SECTORS.map(s=>`<option value="${s}">${s}</option>`).join("")}
+              <option value="${S.lang==="mn"?"Ostalo":"Other"}">${S.lang==="mn"?"Ostalo":"Other"}</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div class="lbl" style="margin-bottom:6px">${u.fChl}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px" id="chlt">
+            ${u.chl.map(c=>`<button type="button" class="cht" data-ch="${c}" style="padding:6px 13px;border-radius:20px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.03);color:#4A7090;font-size:11px;cursor:pointer;font-family:Georgia,serif;transition:all .15s">${c}</button>`).join("")}
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <div class="lbl" style="margin-bottom:6px">${u.fMsg}</div>
+          <textarea id="fm" placeholder="${u.fMPh}" style="margin-bottom:0;resize:vertical;min-height:80px;line-height:1.65"></textarea>
+        </div>
+        <div id="cerr" style="font-size:11px;color:#E07070;margin-bottom:10px;display:none"></div>
+        <button class="btn btn-main" id="csb">${u.fBtn}</button>
+        <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim)">${u.foot}</div>
+      </div>
+      <div id="cfok" style="display:none;text-align:center;padding:18px 0 8px">
+        <div style="font-size:38px;margin-bottom:12px;color:#27AE60">✓</div>
+        <div style="font-size:17px;font-weight:600;color:#E8F2FF;margin-bottom:10px">${u.fOkT}</div>
+        <p style="color:#4A7090;font-size:13px;line-height:1.8;max-width:380px;margin:0 auto">${u.fOkD}</p>
+        <div style="margin-top:18px;padding:12px 16px;background:rgba(39,174,96,0.05);border:1px solid rgba(39,174,96,0.14);border-radius:10px;font-size:12px;color:#3A6A50;line-height:1.7">${u.fOkN}</div>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" id="brst">${u.btnReset}</button>
+  </div></div>`;
+}
+
+// ─── BIND ─────────────────────────────────────────────────────────────────────
+function bind(){
+  const u=T(),d=D();
+
+  if(S.page==="intro"){
+    const bg=document.getElementById("bgo");
+    if(bg){
+      bg.onclick=()=>{
+        const em=document.getElementById("ie").value.trim();
+        const co=document.getElementById("ic").value.trim();
+        const se=document.getElementById("is").value;
+        S.email=em; S.company=co; S.sector=se;
+        S.eErr=!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
+        S.sErr=!se;
+        if(S.eErr||S.sErr){render();return;}
+        S.page="quiz";
+        render();
+        scrollTo(0,0);
+      };
+    }
+    return;
+  }
+
+  if(S.page==="quiz"){
+    const ph=d.PHASES[S.pi], qi=ph.qs[S.qi];
+    document.querySelectorAll(".opt").forEach(b=>{
+      b.onclick=()=>{S.ans[qi]=parseInt(b.dataset.v,10); render();};
+    });
+
+    const bw=document.getElementById("bw");
+    if(bw) bw.onclick=()=>{S.why=!S.why; render();};
+
+    const bn=document.getElementById("bn");
+    if(bn){
+      bn.onclick=()=>{
+        const lastQ=S.qi===ph.qs.length-1;
+        const lastP=S.pi===d.PHASES.length-1;
+        if(lastQ&&lastP){S.page="results";}
+        else if(lastQ){S.pi++; S.qi=0; S.why=false;}
+        else{S.qi++; S.why=false;}
+        render();
+        scrollTo(0,0);
+      };
+    }
+
+    const bb=document.getElementById("bb");
+    if(bb){
+      bb.onclick=()=>{
+        if(S.qi>0){S.qi--; S.why=false;}
+        else if(S.pi>0){S.pi--; S.qi=d.PHASES[S.pi].qs.length-1; S.why=false;}
+        else{S.page="intro";}
+        render();
+        scrollTo(0,0);
+      };
+    }
+    return;
+  }
+
+  const br=document.getElementById("brst");
+  if(br){
+    br.onclick=()=>{
+      S={page:"intro",pi:0,qi:0,ans:{},email:S.email,company:"",sector:"",why:false,eErr:false,sErr:false,lang:S.lang};
+      render();
+      scrollTo(0,0);
+    };
+  }
+
+  const bp=document.getElementById("bpdf");
+  if(bp) bp.onclick=()=>generatePDF();
+
+  const fe=document.getElementById("fe"); if(fe&&S.email) fe.value=S.email;
+  const fb=document.getElementById("fb"); if(fb&&S.company) fb.value=S.company;
+  const fi=document.getElementById("fi"); if(fi&&S.sector) fi.value=S.sector;
+
+  let selC=[];
+  document.querySelectorAll(".cht").forEach(b=>{
+    b.onclick=()=>{
+      const ch=b.dataset.ch;
+      const idx=selC.indexOf(ch);
+      if(idx>-1){
+        selC.splice(idx,1);
+        b.style.background="rgba(255,255,255,0.03)";
+        b.style.borderColor="rgba(255,255,255,0.09)";
+        b.style.color="#4A7090";
+      } else {
+        selC.push(ch);
+        b.style.background="rgba(58,143,212,0.15)";
+        b.style.borderColor="rgba(58,143,212,0.4)";
+        b.style.color="#7ABDE0";
+      }
+    };
+  });
+
+  const cs=document.getElementById("csb");
+  if(cs){
+    cs.onclick=async()=>{
+      const nm=document.getElementById("fn").value.trim();
+      const em=document.getElementById("fe").value.trim();
+      const ind=document.getElementById("fi").value;
+      const errEl=document.getElementById("cerr");
+      const fiEl=document.getElementById("fi");
+
+      if(!nm){errEl.textContent=u.eName; errEl.style.display="block"; return;}
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){errEl.textContent=u.eEmail; errEl.style.display="block"; return;}
+      if(!ind){
+        errEl.textContent=u.eSecF;
+        errEl.style.display="block";
+        fiEl.classList.add("ferr");
+        return;
+      }
+
+      errEl.style.display="none";
+      fiEl.classList.remove("ferr");
+      cs.textContent=u.fSend;
+      cs.disabled=true;
+
+      const biz=document.getElementById("fb").value.trim();
+      const msg=document.getElementById("fm").value.trim();
+      const submissionSummary=getSubmissionSummary();
+
+      try{
+        await fetch("/",{
+          method:"POST",
+          headers:{"Content-Type":"application/x-www-form-urlencoded"},
+          body:new URLSearchParams({
+            "form-name":"dijagnostika-kontakt",
+            "ime":nm,
+            "email":em,
+            "kompanija":biz||"-",
+            "bransa":ind,
+            "score":scorePercent()+"/100",
+            "izazovi":selC.join(", ")||"-",
+            "poruka":msg||"-",
+            "jezik":S.lang==="mn"?"Crnogorski":"English",
+            "phase_scores":submissionSummary.phase_scores,
+            "critical_gaps":submissionSummary.critical_gaps,
+            "strengths":submissionSummary.strengths,
+            "summary_text":submissionSummary.summary_text
+          }).toString()
+        });
+
+        document.getElementById("cfw").style.display="none";
+        document.getElementById("cfok").style.display="block";
+      }catch(e){
+        errEl.textContent=S.lang==="mn"?"Došlo je do greške. Pokušajte ponovo.":"Something went wrong. Please try again.";
+        errEl.style.display="block";
+        cs.textContent=u.fBtn;
+        cs.disabled=false;
+      }
+    };
+  }
+}
+
+// ─── PDF GENERATOR ────────────────────────────────────────────────────────────
+function generatePDF(){
+  const u=T(),d=D();
+  const sc=scoreCard();
+  const pct=scorePercent();
+  const gaps=criticalGaps();
+  const str=strengths();
+  const priorities=topPriorities();
+  const isMN=S.lang==="mn";
+
+  const date=new Date().toLocaleDateString(isMN?"sr-Latn-ME":"en-GB",{day:"2-digit",month:"long",year:"numeric"});
+  const phaseRows=d.PHASES.map((p,i)=>{
+    const pc=phasePercent(i);
+    const avg=phaseAverages()[i];
+    const r=Math.round(avg)||1;
+    const col=r===1?"#C0404A":r===2?"#A07820":"#207A50";
+    return `<tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #1A2840;color:#8AAAC8;font-size:12px">${p.n} — ${p.t}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #1A2840;text-align:right"><span style="color:${col};font-weight:700;font-size:14px">${pc}/100</span></td>
+    </tr>`;
+  }).join("");
+
+  const gapRows=gaps.slice(0,8).map(i=>{
+    const ph=phOf(i);
+    return `<div style="margin-bottom:10px;padding:10px 14px;background:#0F2035;border-left:3px solid #C0404A;border-radius:4px">
+      <div style="font-size:9px;letter-spacing:3px;color:#C0404A;margin-bottom:4px;font-family:monospace">${ph?ph.n+" "+ph.t:""} · Q${i+1}</div>
+      <div style="font-size:11px;color:#8090A0;line-height:1.6">${d.BASE_Q[i]}</div>
+    </div>`;
+  }).join("");
+
+  const strRows=str.slice(0,6).map(i=>{
+    const ph=phOf(i);
+    const o3=d.PQ[i]?d.PQ[i][2]:null;
+    return `<div style="margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">
+      <div style="width:6px;height:6px;border-radius:50%;background:#207A50;flex-shrink:0;margin-top:5px"></div>
+      <div>
+        <div style="font-size:10px;color:#207A50;margin-bottom:3px;font-family:monospace">${ph?ph.n+" "+ph.t:""}</div>
+        <div style="font-size:11px;color:#608080;line-height:1.6">${o3?o3.d:d.BASE_Q[i]}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const priorityRows=priorities.map(x=>`<div style="margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">
+    <div style="width:6px;height:6px;border-radius:50%;background:#3A8FD4;flex-shrink:0;margin-top:5px"></div>
+    <div>
+      <div style="font-size:10px;color:#7ABDE0;margin-bottom:3px;font-family:monospace">${x.phase.n} ${x.phase.t}</div>
+      <div style="font-size:11px;color:#7F9BB0;line-height:1.6">${x.text}</div>
+    </div>
+  </div>`).join("");
+
+  const html=`<!DOCTYPE html>
+<html><head><meta charset="UTF-8" />
+<style>
+body{margin:0;padding:0;background:#0B1929;color:#C8DCF0;font-family:Georgia,serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@page{size:A4;margin:0}
+.page{width:210mm;min-height:297mm;padding:16mm 18mm;box-sizing:border-box;background:#0B1929}
+</style>
+</head><body>
+<div class="page">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #1A2840">
+    <div>
+      <div style="font-size:8px;letter-spacing:6px;color:#3A6A8A;font-family:monospace;margin-bottom:6px">WELLBEING COMPASS · GROWTH METHOD™</div>
+      <div style="font-size:22px;font-weight:700;color:#D8ECF8;letter-spacing:-.3px">${isMN?"Marketing & Prodaja":"Marketing & Sales"}</div>
+      <div style="font-size:22px;font-weight:700;color:#3A8FD4;letter-spacing:-.3px">${isMN?"Dijagnostički izvještaj":"Diagnostic Report"}</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;color:#3A6A8A;margin-bottom:4px">${date}</div>
+      ${S.company?`<div style="font-size:12px;color:#6A8AA8;font-weight:600">${S.company}</div>`:""}
+      ${S.sector?`<div style="font-size:11px;color:#4A6A84">${S.sector}</div>`:""}
+    </div>
+  </div>
+
+  <div style="background:#0F2035;border:1px solid #1E3A5A;border-radius:10px;padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;gap:28px">
+    <div style="text-align:center;min-width:90px">
+      <div style="font-size:9px;letter-spacing:4px;color:#3A6A8A;font-family:monospace;margin-bottom:6px">${isMN?"UKUPNI SCORE":"OVERALL SCORE"}</div>
+      <div style="font-size:52px;font-weight:700;color:${sc.c};line-height:1">${pct}</div>
+      <div style="font-size:12px;color:#1A3040">/100</div>
+      <div style="width:80px;height:4px;background:#1A3040;border-radius:2px;margin:8px auto 0"><div style="height:100%;width:${pct}%;background:${sc.c};border-radius:2px"></div></div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:13px;color:#7090A8;line-height:1.7;margin-bottom:8px">${sc.d}</div>
+      <div style="font-size:11px;color:${sc.c};padding:6px 12px;background:${sc.c}18;border-radius:6px;display:inline-block">${sc.n}</div>
+    </div>
+  </div>
+
+  <div style="background:#0F2035;border:1px solid #1E3A5A;border-radius:10px;padding:16px;margin-bottom:18px">
+    <div style="font-size:9px;letter-spacing:4px;color:#7ABDE0;font-family:monospace;margin-bottom:10px">${isMN?"PRVI PRIORITETI":"FIRST PRIORITIES"}</div>
+    ${priorityRows}
+  </div>
+
+  <div style="background:#0F2035;border:1px solid #1E3A5A;border-radius:10px;overflow:hidden;margin-bottom:18px">
+    <div style="padding:12px 14px;border-bottom:1px solid #1A2840">
+      <div style="font-size:9px;letter-spacing:4px;color:#3A6A8A;font-family:monospace">${isMN?"PREGLED PO FAZAMA":"PHASE BREAKDOWN"}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse">${phaseRows}</table>
+  </div>
+
+  ${gaps.length?`<div style="margin-bottom:16px">
+    <div style="font-size:9px;letter-spacing:4px;color:#C0404A;font-family:monospace;margin-bottom:10px">${isMN?"KRITIČNI GAPOVI — HITNA INTERVENCIJA":"CRITICAL GAPS — URGENT INTERVENTION"}</div>
+    ${gapRows}
+  </div>`:""}
+
+  ${str.length?`<div style="background:#0F201A;border:1px solid #1A3828;border-radius:10px;padding:16px;margin-bottom:18px">
+    <div style="font-size:9px;letter-spacing:4px;color:#207A50;font-family:monospace;margin-bottom:10px">${isMN?"SISTEMSKE SNAGE":"SYSTEMATIC STRENGTHS"}</div>
+    ${strRows}
+  </div>`:""}
+
+  <div style="margin-top:auto;padding-top:16px;border-top:1px solid #1A2840;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:11px;color:#3A6A8A;font-weight:600">Wellbeing Compass</div>
+      <div style="font-size:10px;color:#1E3A50">Jelena Milatović · Podgorica, ${isMN?"Crna Gora":"Montenegro"}</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:#1E3A50">${isMN?"Generisano":"Generated"} ${date}</div>
+      <div style="font-size:10px;color:#1E3A50">wellbeingcompass.me</div>
+    </div>
+  </div>
+</div>
+</body></html>`;
+
+  const pw=window.open("","_blank","width=900,height=700");
+  if(!pw) return;
+  pw.document.write(html);
+  pw.document.close();
+  pw.onload=()=>{setTimeout(()=>{pw.focus(); pw.print();},400);};
+}
+
+render();
+</script>
+</body>
+</html>

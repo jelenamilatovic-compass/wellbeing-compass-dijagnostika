@@ -1,0 +1,9 @@
+{
+  "name": "wellbeing-compass-dijagnostika",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Wellbeing Compass diagnostic",
+  "dependencies": {
+    "pdf-lib": "^1.17.1"
+  }
+}
