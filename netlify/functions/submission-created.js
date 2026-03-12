@@ -1,4 +1,7 @@
-const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
+const fs = require("fs");
+const path = require("path");
+const { PDFDocument, rgb } = require("pdf-lib");
+const fontkit = require("@pdf-lib/fontkit");
 
 function parseEvent(event) {
   try {
@@ -27,12 +30,8 @@ function safe(value, fallback = "-") {
   return text || fallback;
 }
 
-function cleanPdfText(value) {
-  return safe(value, "").replace(/[čćžšđČĆŽŠĐ]/g, "");
-}
-
 function escapeHtml(str) {
-  return String(str)
+  return String(str || "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -59,170 +58,488 @@ function splitDoublePipes(text) {
     .filter(Boolean);
 }
 
+function normalizeSummaryText(value) {
+  return safe(value, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+\|\s+/g, " | ")
+    .trim();
+}
+
+function wrapText(text, font, fontSize, maxWidth) {
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = "";
+
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    const width = font.widthOfTextAtSize(test, fontSize);
+
+    if (width <= maxWidth) {
+      current = test;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines.length ? lines : [""];
+}
+
+function drawWrappedText(page, text, opts) {
+  const { x, y, font, size, color, maxWidth, lineHeight } = opts;
+  const lines = wrapText(text, font, size, maxWidth);
+  let cursorY = y;
+
+  for (const line of lines) {
+    page.drawText(line, {
+      x,
+      y: cursorY,
+      size,
+      font,
+      color,
+    });
+    cursorY -= lineHeight;
+  }
+
+  return cursorY;
+}
+
+function drawBullets(page, items, opts) {
+  const {
+    x,
+    y,
+    font,
+    bulletFont,
+    size,
+    color,
+    maxWidth,
+    lineHeight,
+    bulletGap = 10,
+    itemGap = 4,
+  } = opts;
+
+  let cursorY = y;
+  const bulletWidth = bulletFont.widthOfTextAtSize("•", size);
+
+  for (const item of items) {
+    const itemText = String(item || "").trim();
+    if (!itemText) continue;
+
+    const textX = x + bulletWidth + bulletGap;
+    const textWidth = maxWidth - bulletWidth - bulletGap;
+    const lines = wrapText(itemText, font, size, textWidth);
+
+    page.drawText("•", {
+      x,
+      y: cursorY,
+      size,
+      font: bulletFont,
+      color,
+    });
+
+    let lineY = cursorY;
+    for (const line of lines) {
+      page.drawText(line, {
+        x: textX,
+        y: lineY,
+        size,
+        font,
+        color,
+      });
+      lineY -= lineHeight;
+    }
+
+    cursorY = lineY - itemGap;
+  }
+
+  return cursorY;
+}
+
+function ensureSpace(page, cursorY, neededHeight, createPage) {
+  if (cursorY - neededHeight < 60) {
+    return createPage();
+  }
+  return { page, y: cursorY };
+}
+
 async function buildPdfBase64(data, lang) {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595.28, 841.89]);
-  const { width, height } = page.getSize();
+  pdfDoc.registerFontkit(fontkit);
 
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const regularFontPath = path.join(__dirname, "NotoSans-Regular.ttf");
+  const boldFontPath = path.join(__dirname, "NotoSans-Bold.ttf");
+
+  if (!fs.existsSync(regularFontPath) || !fs.existsSync(boldFontPath)) {
+    throw new Error("Missing NotoSans font files in netlify/functions/");
+  }
+
+  const regularBytes = fs.readFileSync(regularFontPath);
+  const boldBytes = fs.readFileSync(boldFontPath);
+
+  const font = await pdfDoc.embedFont(regularBytes);
+  const fontBold = await pdfDoc.embedFont(boldBytes);
 
   const colors = {
-    bg: rgb(0.043, 0.098, 0.161),
-    panel: rgb(0.059, 0.125, 0.208),
-    border: rgb(0.122, 0.227, 0.353),
-    text: rgb(0.784, 0.863, 0.941),
-    muted: rgb(0.478, 0.607, 0.690),
-    blue: rgb(0.227, 0.561, 0.831),
-    green: rgb(0.153, 0.682, 0.376),
-    red: rgb(0.878, 0.333, 0.333),
+    bg: rgb(0.035, 0.086, 0.152),
+    panel: rgb(0.055, 0.118, 0.204),
+    border: rgb(0.137, 0.259, 0.431),
+    text: rgb(0.90, 0.94, 0.98),
+    muted: rgb(0.67, 0.76, 0.86),
+    blue: rgb(0.28, 0.57, 0.96),
+    blueSoft: rgb(0.12, 0.22, 0.37),
+    red: rgb(0.89, 0.36, 0.38),
+    green: rgb(0.24, 0.77, 0.43),
+    white: rgb(1, 1, 1),
   };
 
-  page.drawRectangle({ x: 0, y: 0, width, height, color: colors.bg });
-
-  let y = height - 42;
+  const pageWidth = 595.28;
+  const pageHeight = 841.89;
   const left = 42;
-  const right = width - 42;
+  const right = pageWidth - 42;
   const contentWidth = right - left;
 
-  function drawText(text, x, yPos, size = 11, color = colors.text, bold = false) {
-    page.drawText(String(text), {
-      x,
-      y: yPos,
-      size,
-      color,
-      font: bold ? fontBold : font,
-    });
-  }
+  let page = pdfDoc.addPage([pageWidth, pageHeight]);
+  let y = pageHeight - 42;
 
-  function wrapText(text, maxChars = 78) {
-    const words = String(text || "").split(/\s+/);
-    const lines = [];
-    let line = "";
-
-    for (const word of words) {
-      const next = line ? `${line} ${word}` : word;
-      if (next.length > maxChars) {
-        if (line) lines.push(line);
-        line = word;
-      } else {
-        line = next;
-      }
-    }
-    if (line) lines.push(line);
-    return lines;
-  }
-
-  function paragraph(text, options = {}) {
-    const {
-      size = 10,
-      color = colors.text,
-      bold = false,
-      maxChars = 78,
-      lineGap = 4,
-      indent = 0,
-    } = options;
-
-    const lines = wrapText(text, maxChars);
-    for (const line of lines) {
-      drawText(line, left + indent, y, size, color, bold);
-      y -= size + lineGap;
-    }
-  }
-
-  function sectionTitle(title, color = colors.blue) {
-    drawText(title.toUpperCase(), left, y, 9, color, true);
-    y -= 16;
-  }
-
-  function panel(heightPx) {
+  const createNewPage = () => {
+    page = pdfDoc.addPage([pageWidth, pageHeight]);
     page.drawRectangle({
-      x: left,
-      y: y - heightPx + 10,
-      width: contentWidth,
-      height: heightPx,
-      color: colors.panel,
-      borderColor: colors.border,
-      borderWidth: 1,
+      x: 0,
+      y: 0,
+      width: pageWidth,
+      height: pageHeight,
+      color: colors.bg,
     });
-  }
+    return { page, y: pageHeight - 42 };
+  };
+
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width: pageWidth,
+    height: pageHeight,
+    color: colors.bg,
+  });
+
+  const score = safe(data.score);
+  const phaseScores = splitPipes(data.phase_scores);
+  const criticalGaps = splitDoublePipes(data.critical_gaps);
+  const strengths = splitDoublePipes(data.strengths);
+  const summaryText = normalizeSummaryText(data.summary_text);
 
   const title1 = lang === "en" ? "Marketing & Sales" : "Marketing & Prodaja";
-  const title2 = lang === "en" ? "Diagnostic Report" : "Dijagnosticki izvjestaj";
-  const dateText = new Date().toLocaleDateString(lang === "en" ? "en-GB" : "sr-Latn-ME");
+  const title2 = lang === "en" ? "Diagnostic Report" : "Dijagnostički izvještaj";
+  const keyDetailsTitle = lang === "en" ? "Key details" : "Osnovni podaci";
+  const phaseTitle = lang === "en" ? "Phase breakdown" : "Pregled po fazama";
+  const gapsTitle = lang === "en" ? "Critical gaps" : "Kritični gapovi";
+  const strengthsTitle = lang === "en" ? "System strengths" : "Sistemske snage";
+  const noGapsText = lang === "en" ? "No critical gaps detected." : "Nema detektovanih kritičnih gapova.";
+  const noStrengthText = lang === "en" ? "No standout strengths recorded yet." : "Još nema izdvojenih sistemskih snaga.";
 
-  drawText("WELLBEING COMPASS · GROWTH METHOD™", left, y, 8, colors.muted, true);
+  const dateText = new Date().toLocaleDateString(
+    lang === "en" ? "en-GB" : "sr-Latn-ME",
+    { day: "numeric", month: "numeric", year: "numeric" }
+  );
+
+  page.drawText("WELLBEING COMPASS · GROWTH METHOD™", {
+    x: left,
+    y,
+    size: 8,
+    font: fontBold,
+    color: colors.muted,
+  });
   y -= 18;
-  drawText(title1, left, y, 22, colors.text, true);
+
+  page.drawText(title1, {
+    x: left,
+    y,
+    size: 22,
+    font: fontBold,
+    color: colors.white,
+  });
   y -= 24;
-  drawText(title2, left, y, 22, colors.blue, true);
-  drawText(dateText, right - 70, height - 42, 10, colors.muted, false);
-  y -= 30;
 
-  panel(92);
-  drawText(lang === "en" ? "OVERALL SCORE" : "UKUPNI SCORE", left + 18, y - 8, 9, colors.muted, true);
-  drawText(safe(data.score), left + 18, y - 46, 30, colors.blue, true);
+  page.drawText(title2, {
+    x: left,
+    y,
+    size: 22,
+    font: fontBold,
+    color: colors.blue,
+  });
 
-  const summary = cleanPdfText(data.summary_text);
-  const summaryLines = wrapText(summary, 44);
-  let sy = y - 10;
-  for (const line of summaryLines.slice(0, 5)) {
-    drawText(line, left + 160, sy, 10, colors.muted, false);
-    sy -= 14;
+  page.drawText(dateText, {
+    x: right - 58,
+    y: y + 2,
+    size: 10,
+    font,
+    color: colors.muted,
+  });
+
+  y -= 26;
+
+  page.drawRectangle({
+    x: left,
+    y: y - 110,
+    width: contentWidth,
+    height: 110,
+    color: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+  });
+
+  page.drawRectangle({
+    x: left + 16,
+    y: y - 86,
+    width: 138,
+    height: 62,
+    color: colors.blueSoft,
+    borderColor: colors.border,
+    borderWidth: 1,
+  });
+
+  page.drawText(lang === "en" ? "OVERALL SCORE" : "UKUPNI SCORE", {
+    x: left + 24,
+    y: y - 18,
+    size: 9,
+    font: fontBold,
+    color: colors.muted,
+  });
+
+  page.drawText(score, {
+    x: left + 24,
+    y: y - 64,
+    size: 28,
+    font: fontBold,
+    color: colors.blue,
+  });
+
+  const summaryX = left + 170;
+  let summaryY = y - 18;
+  drawWrappedText(page, summaryText || "-", {
+    x: summaryX,
+    y: summaryY,
+    font,
+    size: 10,
+    color: colors.muted,
+    maxWidth: contentWidth - 188,
+    lineHeight: 13,
+  });
+
+  y -= 132;
+
+  page.drawText(keyDetailsTitle.toUpperCase(), {
+    x: left,
+    y,
+    size: 10,
+    font: fontBold,
+    color: colors.blue,
+  });
+  y -= 18;
+
+  const detailLines = [
+    `Ime: ${safe(data.ime)}`,
+    `Email: ${safe(data.email)}`,
+    `Kompanija: ${safe(data.kompanija)}`,
+    `Branša: ${safe(data.bransa)}`,
+    `Izazovi: ${safe(data.izazovi)}`,
+    `Poruka: ${safe(data.poruka)}`,
+  ];
+
+  page.drawRectangle({
+    x: left,
+    y: y - 108,
+    width: contentWidth,
+    height: 108,
+    color: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+  });
+
+  let detailsY = y - 18;
+  for (const line of detailLines) {
+    page.drawText(line, {
+      x: left + 16,
+      y: detailsY,
+      size: 10,
+      font,
+      color: colors.text,
+    });
+    detailsY -= 17;
   }
-  y -= 108;
 
-  sectionTitle(lang === "en" ? "Key details" : "Osnovni podaci");
-  paragraph(`${lang === "en" ? "Name" : "Ime"}: ${cleanPdfText(data.ime)}`);
-  paragraph(`Email: ${cleanPdfText(data.email)}`);
-  paragraph(`${lang === "en" ? "Company" : "Kompanija"}: ${cleanPdfText(data.kompanija)}`);
-  paragraph(`${lang === "en" ? "Industry" : "Bransa"}: ${cleanPdfText(data.bransa)}`);
-  paragraph(`${lang === "en" ? "Challenges" : "Izazovi"}: ${cleanPdfText(data.izazovi)}`);
-  paragraph(`${lang === "en" ? "Message" : "Poruka"}: ${cleanPdfText(data.poruka)}`);
-  y -= 8;
+  y -= 128;
 
-  sectionTitle(lang === "en" ? "Phase breakdown" : "Pregled po fazama");
-  for (const item of splitPipes(data.phase_scores)) {
-    paragraph(`• ${cleanPdfText(item)}`, { indent: 8 });
+  page.drawText(phaseTitle.toUpperCase(), {
+    x: left,
+    y,
+    size: 10,
+    font: fontBold,
+    color: colors.blue,
+  });
+  y -= 18;
+
+  page.drawRectangle({
+    x: left,
+    y: y - 78,
+    width: contentWidth,
+    height: 78,
+    color: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+  });
+
+  const phaseColumns = [
+    { label: "INPUT", value: phaseScores[0] || "-" },
+    { label: "AKTIVACIJA", value: phaseScores[1] || "-" },
+    { label: "AKCIJA", value: phaseScores[2] || "-" },
+    { label: "OUTPUT", value: phaseScores[3] || "-" },
+  ];
+
+  const colWidth = (contentWidth - 32) / 4;
+  let colX = left + 16;
+
+  for (const col of phaseColumns) {
+    page.drawText(col.label, {
+      x: colX,
+      y: y - 20,
+      size: 9,
+      font: fontBold,
+      color: colors.muted,
+    });
+
+    page.drawText(String(col.value), {
+      x: colX,
+      y: y - 48,
+      size: 16,
+      font: fontBold,
+      color: colors.white,
+    });
+
+    colX += colWidth;
   }
-  y -= 8;
 
-  sectionTitle(lang === "en" ? "Critical gaps" : "Kriticni gapovi", colors.red);
-  const gaps = splitDoublePipes(data.critical_gaps);
-  if (gaps.length) {
-    for (const item of gaps.slice(0, 5)) {
-      paragraph(`• ${cleanPdfText(item)}`, { indent: 8, maxChars: 72 });
-    }
+  y -= 98;
+
+  page.drawText(gapsTitle.toUpperCase(), {
+    x: left,
+    y,
+    size: 10,
+    font: fontBold,
+    color: colors.red,
+  });
+  y -= 18;
+
+  let estimatedGapHeight = criticalGaps.length
+    ? Math.min(criticalGaps.length, 6) * 36 + 24
+    : 42;
+
+  ({ page, y } = ensureSpace(page, y, estimatedGapHeight + 30, createNewPage));
+
+  page.drawRectangle({
+    x: left,
+    y: y - estimatedGapHeight,
+    width: contentWidth,
+    height: estimatedGapHeight,
+    color: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+  });
+
+  let gapsY = y - 18;
+  if (criticalGaps.length) {
+    drawBullets(page, criticalGaps.slice(0, 6), {
+      x: left + 16,
+      y: gapsY,
+      font,
+      bulletFont: fontBold,
+      size: 10,
+      color: colors.text,
+      maxWidth: contentWidth - 32,
+      lineHeight: 15,
+    });
   } else {
-    paragraph(lang === "en" ? "No critical gaps detected." : "Nema detektovanih kriticnih gapova.", {
-      indent: 8,
+    page.drawText(noGapsText, {
+      x: left + 16,
+      y: gapsY,
+      size: 10,
+      font,
       color: colors.muted,
     });
   }
-  y -= 8;
 
-  sectionTitle(lang === "en" ? "System strengths" : "Sistemske snage", colors.green);
-  const strengths = splitDoublePipes(data.strengths);
+  y -= estimatedGapHeight + 20;
+
+  ({ page, y } = ensureSpace(page, y, 150, createNewPage));
+
+  page.drawText(strengthsTitle.toUpperCase(), {
+    x: left,
+    y,
+    size: 10,
+    font: fontBold,
+    color: colors.green,
+  });
+  y -= 18;
+
+  let estimatedStrengthHeight = strengths.length
+    ? Math.min(strengths.length, 6) * 34 + 24
+    : 42;
+
+  page.drawRectangle({
+    x: left,
+    y: y - estimatedStrengthHeight,
+    width: contentWidth,
+    height: estimatedStrengthHeight,
+    color: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+  });
+
+  let strengthsY = y - 18;
   if (strengths.length) {
-    for (const item of strengths.slice(0, 5)) {
-      paragraph(`• ${cleanPdfText(item)}`, { indent: 8, maxChars: 72 });
-    }
+    drawBullets(page, strengths.slice(0, 6), {
+      x: left + 16,
+      y: strengthsY,
+      font,
+      bulletFont: fontBold,
+      size: 10,
+      color: colors.text,
+      maxWidth: contentWidth - 32,
+      lineHeight: 15,
+    });
   } else {
-    paragraph(lang === "en" ? "No standout strengths recorded yet." : "Jos nema izdvojenih sistemskih snaga.", {
-      indent: 8,
+    page.drawText(noStrengthText, {
+      x: left + 16,
+      y: strengthsY,
+      size: 10,
+      font,
       color: colors.muted,
     });
   }
 
+  const footerY = 26;
   page.drawLine({
-    start: { x: left, y: 28 },
-    end: { x: right, y: 28 },
+    start: { x: left, y: footerY + 10 },
+    end: { x: right, y: footerY + 10 },
     thickness: 1,
     color: colors.border,
   });
 
-  drawText("Wellbeing Compass · Jelena Milatovic · Podgorica", left, 16, 9, colors.muted);
-  drawText("wellbeingcompass.me", right - 100, 16, 9, colors.muted);
+  page.drawText("Wellbeing Compass · Jelena Milatović · Podgorica", {
+    x: left,
+    y: footerY,
+    size: 9,
+    font,
+    color: colors.muted,
+  });
+
+  page.drawText("wellbeingcompass.me", {
+    x: right - 110,
+    y: footerY,
+    size: 9,
+    font,
+    color: colors.muted,
+  });
 
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes).toString("base64");
@@ -300,7 +617,7 @@ exports.handler = async function(event) {
     const clientSubject =
       lang === "en"
         ? "Your Wellbeing Compass diagnostic report"
-        : "Vas Wellbeing Compass dijagnosticki izvjestaj";
+        : "Vaš Wellbeing Compass dijagnostički izvještaj";
 
     const ownerHtml = `
       <div style="font-family:Georgia,serif;background:#0B1929;color:#C8DCF0;padding:24px">
@@ -308,7 +625,7 @@ exports.handler = async function(event) {
         <p><strong>Ime:</strong> ${escapeHtml(safe(data.ime))}</p>
         <p><strong>Email:</strong> ${escapeHtml(safe(data.email))}</p>
         <p><strong>Kompanija:</strong> ${escapeHtml(safe(data.kompanija))}</p>
-        <p><strong>Bransa:</strong> ${escapeHtml(safe(data.bransa))}</p>
+        <p><strong>Branša:</strong> ${escapeHtml(safe(data.bransa))}</p>
         <p><strong>Score:</strong> ${escapeHtml(score)}</p>
         <p><strong>Izazovi:</strong> ${escapeHtml(safe(data.izazovi))}</p>
         <p><strong>Poruka:</strong> ${escapeHtml(safe(data.poruka))}</p>
@@ -332,10 +649,10 @@ exports.handler = async function(event) {
     `
         : `
       <div style="font-family:Georgia,serif;background:#0B1929;color:#C8DCF0;padding:24px">
-        <h1 style="color:#E8F2FF;margin-top:0">Hvala sto ste zavrsili dijagnostiku.</h1>
-        <p>Vas score: <strong>${escapeHtml(score)}</strong></p>
-        <p>Vas izvjestaj je u prilogu kao PDF.</p>
-        <p>Pregledacemo prijavu i javiti vam se sa sljedecim korakom.</p>
+        <h1 style="color:#E8F2FF;margin-top:0">Hvala što ste završili dijagnostiku.</h1>
+        <p>Vaš score: <strong>${escapeHtml(score)}</strong></p>
+        <p>Vaš izvještaj je u prilogu kao PDF.</p>
+        <p>Pregledaćemo prijavu i javiti vam se sa sljedećim korakom.</p>
         <p style="margin-top:24px">Wellbeing Compass</p>
       </div>
     `;
@@ -367,7 +684,7 @@ exports.handler = async function(event) {
       textBody:
         lang === "en"
           ? `Thank you for completing the diagnostic. Your score is ${score}. Your PDF report is attached.`
-          : `Hvala sto ste zavrsili dijagnostiku. Vas score je ${score}. PDF izvjestaj je u prilogu.`,
+          : `Hvala što ste završili dijagnostiku. Vaš score je ${score}. PDF izvještaj je u prilogu.`,
       attachments: attachment,
     });
 
