@@ -1,2 +1,8 @@
-[[plugins]]
-package = "@netlify/plugin-emails"
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  included_files = [
+    "netlify/functions/NotoSans-Regular.ttf",
+    "netlify/functions/NotoSans-Bold.ttf"
+  ]
