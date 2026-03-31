@@ -566,25 +566,27 @@
       const isLast=S.pi===d.PHASES.length-1&&S.qi===ph.qs.length-1;
 
       return `<div class="fade" style="min-height:100vh;padding:0 0 40px;background:var(--bg)">
-        <div style="position:sticky;top:0;z-index:10;background:var(--bg);padding:14px 20px 10px;border-bottom:1px solid rgba(255,255,255,0.05)">
-          <div style="max-width:620px;margin:0 auto">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div class="lbl">${u.qLbl} ${done+1} ${u.ofLbl} ${tot}</div>
-              <div class="lbl" style="color:#4AC87A">${ph.n} · ${ph.t.replace(/^FAZA\s*0?\d+\s*—\s*/i,"").replace(/^PHASE\s*0?\d+\s*—\s*/i,"")}</div>
-            </div>
-            <div class="prog"><div class="prog-f" style="width:${Math.round((done/tot)*100)}%"></div></div>
+       <div style="position:sticky;top:0;z-index:10;background:rgba(11,25,41,0.96);backdrop-filter:blur(10px);padding:14px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">
+  <div style="max-width:620px;margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="lbl">${u.qLbl} ${done+1} / ${tot}</div>
+    </div>
 
-            <div style="display:flex;margin-top:10px;gap:4px">
-${d.PHASES.map((p,i)=>{
-  const dn=p.qs.every(q=>S.ans[q]);
-  return `<div class="ph-tab${i===S.pi?" on":""}">
-    <div style="font-size:9px;letter-spacing:2px;color:${i===S.pi?"#4AC87A":dn?"#27AE60":"#5A7A94"};font-family:'Courier New',monospace">${p.n}${dn?" ✓":""}</div>
-    <div style="font-size:10px;color:${i===S.pi?"#7AE0A0":dn?"#27AE60":"#5A7A94"};margin-top:2px">${p.t}</div>
-  </div>`;
-}).join("")}
-            </div>
-          </div>
-        </div>
+    <div class="prog" style="margin-bottom:12px">
+      <div class="prog-f" style="width:${Math.round((done/tot)*100)}%"></div>
+    </div>
+
+    <div style="display:flex;gap:6px">
+      ${d.PHASES.map((p,i)=>{
+        const dn=p.qs.every(q=>S.ans[q]);
+        const cleanTitle=p.t.split("/")[0].replace(/^FAZA\s*0?\d+\s*—\s*/i,"").replace(/^PHASE\s*0?\d+\s*—\s*/i,"").trim();
+        return `<div class="ph-tab${i===S.pi?" on":""}" style="padding:8px 4px">
+          <div style="font-size:10px;color:${i===S.pi?"#DDF4E7":dn?"#A9E2BC":"#6E86A0"};letter-spacing:.4px;font-weight:${i===S.pi?"700":"500"}">${cleanTitle}${dn?" ✓":""}</div>
+        </div>`;
+      }).join("")}
+    </div>
+  </div>
+</div>
 
         <div style="max-width:620px;margin:0 auto;padding:22px 20px 0">
           <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:22px 18px">
