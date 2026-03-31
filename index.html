@@ -516,23 +516,19 @@
           </div>
 
           <div class="intro-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px">
-           ${d.PHASES.map((p,i)=>{
+          ${d.PHASES.map((p,i)=>{
   const pct=[10,7,5,5][i];
   const qLabel=S.lang==="mn"?"pitanja":"questions";
   const phaseLabel=S.lang==="mn"?`FAZA ${i+1}`:`PHASE ${i+1}`;
+  const cleanTitle=p.t.replace(/^FAZA\s*0?\d+\s*—\s*/i,"").replace(/^PHASE\s*0?\d+\s*—\s*/i,"");
   return `<div class="ph-card" style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px 16px">
     <div style="font-size:11px;letter-spacing:4px;color:var(--muted);font-family:'Courier New',monospace;margin-bottom:8px">${phaseLabel}</div>
-    <div style="font-size:17px;font-weight:700;color:#D8ECF8;margin-bottom:6px;letter-spacing:.3px">${p.t}</div>
+    <div style="font-size:17px;font-weight:700;color:#D8ECF8;margin-bottom:6px;letter-spacing:.3px">${cleanTitle}</div>
     <div style="font-size:14px;color:#A8C9DE;line-height:1.7;margin-bottom:8px;font-style:italic">${p.s}</div>
     <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace">${pct} ${qLabel}</div>
   </div>`;
 }).join("")}
-
-Dakle:
-
-gornji red postaje FAZA 1, FAZA 2, FAZA 3, FAZA 4
-naslov
-          </div>
+</div>
 
           <div class="form-section">
             <div class="form-section-title">${S.lang==="mn"?"VAŠI PODACI":"YOUR DETAILS"}</div>
